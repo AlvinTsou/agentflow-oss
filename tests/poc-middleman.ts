@@ -157,6 +157,52 @@ async function assertMiddlemanStreamsNativeEvents() {
   assert(events.at(-1)?.type === "done", "stream ends with done event");
 }
 
+async function assertSmokeTestWorks() {
+  console.log("[test G] smokeTestOpenAICompatible works under mock");
+  const originalFetch = globalThis.fetch;
+
+  // Mock fetch for success
+  globalThis.fetch = async () => {
+    return {
+      ok: true,
+      status: 200,
+      async text() {
+        return JSON.stringify({
+          choices: [{ message: { content: "pong" } }]
+        });
+      }
+    } as Response;
+  };
+
+  const { smokeTestOpenAICompatible } = await import("../src/middleman/openai-compatible.js");
+  const res1 = await smokeTestOpenAICompatible({
+    apiKey: "test-key",
+    model: "test-model"
+  });
+  assert(res1.success === true, "smoke test succeeds with ok gateway");
+  assert(res1.message.includes("Successfully connected"), "success message matches");
+
+  // Mock fetch for failure (401 Unauthorized)
+  globalThis.fetch = async () => {
+    return {
+      ok: false,
+      status: 401,
+      async text() {
+        return "Unauthorized";
+      }
+    } as Response;
+  };
+
+  const res2 = await smokeTestOpenAICompatible({
+    apiKey: "test-key",
+    model: "test-model"
+  });
+  assert(res2.success === false, "smoke test fails with 401");
+  assert(res2.message.includes("Gateway returned status 401"), "failure message captures 401");
+
+  globalThis.fetch = originalFetch; // restore
+}
+
 async function main() {
   assertPolicyRedacts();
   assertPolicyBlocks();
@@ -164,6 +210,7 @@ async function main() {
   await assertMiddlemanRoutesAndAppliesPolicy();
   await assertRequestNativeProviderPath();
   await assertMiddlemanStreamsNativeEvents();
+  await assertSmokeTestWorks();
 
   console.log(`\n[result] failures=${failures}`);
   process.exit(failures === 0 ? 0 : 1);

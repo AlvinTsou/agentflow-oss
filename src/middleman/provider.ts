@@ -40,6 +40,7 @@ export interface StepProvider {
   run(prompt: string, options?: ProviderRunOptions): Promise<StepResult>;
   runRequest?(request: MiddlemanRequest, options?: ProviderRunOptions): Promise<StepResult>;
   runStream?(request: MiddlemanRequest, options?: ProviderRunOptions): AsyncIterable<MiddlemanStreamEvent>;
+  smokeTest?(options?: ProviderRunOptions): Promise<{ success: boolean; message: string }>;
 }
 
 export interface ProviderUsage {

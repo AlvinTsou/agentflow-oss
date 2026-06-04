@@ -95,7 +95,9 @@ function printHelp(exitCode = 0): never {
       `      Write a gate record to .agentflow-feedback/feedback.jsonl.\n` +
       `      Author: $AGENTFLOW_AUTHOR -> git user.email -> unknown.\n` +
       `  pnpm ag resolve         <sprintDir> --id <feedback-id>\n` +
-      `      Stamp resolvedAt on the matching feedback.jsonl row (closes open RCs).\n`,
+      `      Stamp resolvedAt on the matching feedback.jsonl row (closes open RCs).\n` +
+      `  pnpm ag smoke-test <provider> [...opts]\n` +
+      `      Run a pre-flight gateway smoke test. Supported options: --baseUrl, --apiKey, --apiKeyEnv, --model, --timeoutMs.\n`,
   );
   process.exit(exitCode);
 }
@@ -154,6 +156,8 @@ function dispatch(argv: string[]): Dispatch {
       return { module: "./ag-status.js", argv: rest };
     case "replay":
       return { module: "./ag-replay.js", argv: rest };
+    case "smoke-test":
+      return { module: "./ag-smoke-test.js", argv: rest };
     case "approve":
     case "request-changes":
     case "force-pass":

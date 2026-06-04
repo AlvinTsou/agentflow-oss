@@ -4,6 +4,7 @@ import {
   runOpenAICompatibleRequest,
   runOpenAICompatibleStep,
   runOpenAICompatibleStream,
+  smokeTestOpenAICompatible,
 } from "./openai-compatible.js";
 import { openRouterProvider } from "./openrouter.js";
 import { geminiProvider } from "./gemini.js";
@@ -45,6 +46,9 @@ export const openAICompatibleProvider: StepProvider = {
   },
   runStream(request, options: ProviderRunOptions = {}) {
     return runOpenAICompatibleStream(request, options);
+  },
+  smokeTest(options: ProviderRunOptions = {}) {
+    return smokeTestOpenAICompatible(options);
   },
 };
 

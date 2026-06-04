@@ -324,3 +324,73 @@ export async function* runOpenAICompatibleStream(
     clearTimeout(timer);
   }
 }
+
+export async function smokeTestOpenAICompatible(
+  options: ProviderRunOptions = {}
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const { baseUrl, apiKey, model } = resolveOpenAIConfig(
+      { messages: [], model: options.model },
+      options
+    );
+
+    const controller = new AbortController();
+    const timeoutMs = options.timeoutMs ?? 5000;
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: openAIHeaders(apiKey, options.extraHeaders),
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: "ping" }],
+          max_tokens: 1,
+        }),
+        signal: controller.signal,
+      });
+
+      const rawText = await response.text();
+      clearTimeout(timer);
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: `Gateway returned status ${response.status}: ${rawText.slice(0, 200)}`,
+        };
+      }
+
+      try {
+        const json = JSON.parse(rawText) as ChatCompletionResponse;
+        if (json.error?.message) {
+          return {
+            success: false,
+            message: `Gateway error: ${json.error.message}`,
+          };
+        }
+      } catch {
+        // Fallback for non-JSON or weird formats, but 200 OK is generally fine
+      }
+
+      return {
+        success: true,
+        message: `Successfully connected to ${baseUrl} using model ${model}.`,
+      };
+    } catch (fetchErr) {
+      clearTimeout(timer);
+      if (fetchErr instanceof Error && fetchErr.name === "AbortError") {
+        return {
+          success: false,
+          message: `Timeout after ${timeoutMs}ms while connecting to ${baseUrl}.`,
+        };
+      }
+      throw fetchErr;
+    }
+  } catch (err) {
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
