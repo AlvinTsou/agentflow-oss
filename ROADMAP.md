@@ -32,6 +32,7 @@ development.
   - OpenAI-compatible (`OPENAI_API_KEY` + `OPENAI_BASE_URL`)
   - OpenRouter (`OPENROUTER_API_KEY`)
   - Gemini (`GEMINI_API_KEY`)
+- **Gateway smoke test:** Pre-flight check command (`ag smoke-test`) that verifies connectivity and credential validity against an OpenAI-compatible gateway.
 - **Artifact IO:** Frontmatter-based markdown artifacts with structured
   metadata.
 - **Feedback ingestion:** File-based feedback from `.agentflow-feedback/`
@@ -47,9 +48,6 @@ These features are designed and scoped but not yet implemented.
   provider names to their supported features (streaming, function calling,
   vision, token limits). The Middleman can then validate requests against
   provider capabilities before dispatching.
-- **OpenAI-compatible gateway smoke test.** An automated test that verifies
-  connectivity and basic completion against an OpenAI-compatible endpoint,
-  usable as a pre-flight check before starting a sprint.
 
 ### New Recipes
 
