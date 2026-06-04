@@ -122,6 +122,7 @@ configuration reference.
 - [CLI Reference](docs/cli-reference.md)
 - [Release Checklist](docs/release-checklist.md)
 - [Feedback Commands Guide](docs/examples/feedback-commands.md)
+- [Basic SDD Sprint Walkthrough](docs/examples/basic-sdd-sprint.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security Policy](SECURITY.md)
 - [Roadmap](ROADMAP.md)
