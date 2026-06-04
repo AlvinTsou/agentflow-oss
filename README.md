@@ -119,6 +119,8 @@ configuration reference.
 - [Architecture Overview](docs/architecture.md)
 - [Maintainer Workflows](docs/maintainer-workflows.md)
 - [Provider Routing](docs/provider-routing.md)
+- [CLI Reference](docs/cli-reference.md)
+- [Release Checklist](docs/release-checklist.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security Policy](SECURITY.md)
 - [Roadmap](ROADMAP.md)

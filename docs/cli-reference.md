@@ -1,0 +1,85 @@
+# CLI Command Reference
+
+This document provides a detailed reference for all commands and options available in the `agentflow-oss` CLI.
+
+## Usage Overview
+
+```bash
+pnpm ag <command> [...options]
+```
+
+---
+
+## Commands
+
+### `init`
+Initialize a new sprint skeleton without invoking any provider.
+
+- **Usage**: `pnpm ag init <recipe> [...options]`
+- **Supported Recipes**: `mini`, `sdd`, `research`
+- **Options**:
+  - `--input <file>`: Path to the input markdown file containing the problem brief or task description.
+  - `--prefix <prefix>`: Prefix name for the generated sprint directory.
+  - `--gate <mode>`: Quality gate mode (e.g., `auto`, `manual`).
+  - `--language <name>`: Programming language context (e.g., `TypeScript`).
+  - `--lite-preset`: Use a lightweight configuration for testing or quick execution.
+
+### `run`
+Create and immediately execute a new sprint, or start an initialized sprint from step 0.
+
+- **Usage**:
+  - Run a recipe: `pnpm ag run <recipe> [...options]`
+  - Run an initialized sprint: `pnpm ag run <sprintDir>`
+- **Options**:
+  - Same as `init` options when running a new recipe.
+
+### `resume`
+Resume a paused or failed sprint from where it left off.
+
+- **Usage**: `pnpm ag resume <sprintDir> [...options]`
+- **Options**:
+  - `--step <idx>`: Resume specifically from a 0-indexed step index.
+  - `--iter <id>`: Resume from a specific iteration.
+  - `--recipe <name>`: Override the recipe for the sprint.
+  - `--no-reset`: Do not reset the current step's attempts.
+  - `--language <name>`: Override the target language context.
+
+### `status`
+Display a read-only snapshot of the sprint's progress.
+
+- **Usage**: `pnpm ag status <sprintDir>`
+- **Output Includes**:
+  - Run phase
+  - Current executing step
+  - Step scores
+  - Accumulated API costs
+  - Latest git checkpoint tag
+
+### `replay`
+Render the event log (`events.jsonl`) for inspection without making any API calls.
+
+- **Usage**: `pnpm ag replay <sprintDir>`
+
+### `approve`
+Record maintainer approval for a specific step.
+
+- **Usage**: `pnpm ag approve <sprintDir> --step <name> [--note <msg>]`
+- **Behavior**: Writes an approval record to `.agentflow-feedback/feedback.jsonl`.
+
+### `request-changes`
+Record blocking feedback for a step.
+
+- **Usage**: `pnpm ag request-changes <sprintDir> --step <name> --message <msg>`
+- **Behavior**: Writes a `request-changes` record to `.agentflow-feedback/feedback.jsonl` that halts the readiness pipeline.
+
+### `force-pass`
+Supersede an open `request-changes` gate and record approval.
+
+- **Usage**: `pnpm ag force-pass <sprintDir> --step <name> [--note <msg>]`
+- **Behavior**: Overrides previous blocking feedback.
+
+### `resolve`
+Mark a feedback record as resolved to close open `request-changes` blocks.
+
+- **Usage**: `pnpm ag resolve <sprintDir> --id <feedback-id>`
+- **Behavior**: Stamps `resolvedAt` on the matching feedback row in `feedback.jsonl`.
