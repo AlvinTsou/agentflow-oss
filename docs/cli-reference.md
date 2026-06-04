@@ -100,4 +100,24 @@ Mark a feedback record as resolved to close open `request-changes` blocks.
   ```
 - **Behavior**: Stamps `resolvedAt` on the matching feedback row in `feedback.jsonl`.
 
+### `smoke-test`
+Run a pre-flight gateway smoke test to verify connectivity and credential validity before launching a full sprint.
+
+- **Usage**: `pnpm ag smoke-test <provider> [...options]`
+- **Supported Providers**: `openai-compatible`, `claude`, `gemini`, `openrouter`, `codex`
+- **Options**:
+  - `--baseUrl <url>`: Base URL for the gateway endpoint (e.g. `https://api.openai.com/v1`).
+  - `--apiKey <key>`: The API credential key string.
+  - `--apiKeyEnv <name>`: Environment variable name holding the API key (e.g. `MY_OPENAI_KEY`).
+  - `--model <name>`: The model identifier to test (required for `openai-compatible`).
+  - `--timeoutMs <ms>`: Connect and request timeout threshold in milliseconds (default: `5000`).
+- **Examples**:
+  ```bash
+  # Test an OpenAI-compatible endpoint with explicit API key and model
+  pnpm ag smoke-test openai-compatible \
+    --baseUrl http://127.0.0.1:8080/v1 \
+    --apiKey my-secret-token \
+    --model gpt-4o-mini
+  ```
+
 For a full walkthrough of how these commands interact in a real sprint, see [Feedback Commands Guide](examples/feedback-commands.md).
