@@ -25,6 +25,7 @@ cache/
 .env.test
 .env.production
 .env.*.local
+instruction.md
 
 # OS files
 .DS_Store
