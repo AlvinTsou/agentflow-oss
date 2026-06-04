@@ -1,0 +1,31 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Compiles / Bundles
+dist/
+build/
+*.tsbuildinfo
+
+# AgentFlow CLI outputs and states
+.agentflow-runs/
+.agentflow-feedback/
+sprints/
+tasks/
+logs/
+cache/
+
+# Environments and local files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db

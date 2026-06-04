@@ -1,0 +1,42 @@
+{
+  "name": "agentflow-oss",
+  "version": "0.1.0",
+  "description": "Maintainer workflow engine for repeatable AI-assisted coding, review, quality gates, provider routing, sprint state, and carry-over workflows.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test:offline": "node --import tsx --test tests/poc-middleman.ts tests/poc-contract-gate.ts tests/poc-readiness.ts tests/poc-best-so-far.ts tests/poc-research-recipe.ts",
+    "test:secret-scan": "node --import tsx tests/secret-scan.ts",
+    "test": "pnpm run build && pnpm run test:offline && pnpm run test:secret-scan",
+    "ag": "tsx ag.ts"
+  },
+  "bin": {
+    "ag": "./bin/ag"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.143",
+    "tsx": "^4.19"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "keywords": [
+    "agentflow",
+    "workflow",
+    "ai",
+    "coding",
+    "review",
+    "quality",
+    "sprint",
+    "recipe"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AlvinTsou/agentflow-oss.git"
+  }
+}
