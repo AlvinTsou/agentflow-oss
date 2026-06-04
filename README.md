@@ -121,6 +121,7 @@ configuration reference.
 - [Provider Routing](docs/provider-routing.md)
 - [CLI Reference](docs/cli-reference.md)
 - [Release Checklist](docs/release-checklist.md)
+- [Feedback Commands Guide](docs/examples/feedback-commands.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security Policy](SECURITY.md)
 - [Roadmap](ROADMAP.md)

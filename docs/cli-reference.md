@@ -64,22 +64,40 @@ Render the event log (`events.jsonl`) for inspection without making any API call
 Record maintainer approval for a specific step.
 
 - **Usage**: `pnpm ag approve <sprintDir> --step <name> [--note <msg>]`
+- **Example**:
+  ```bash
+  pnpm ag approve sprints/rate-limit-sprint --step implementation --note "Looks solid"
+  ```
 - **Behavior**: Writes an approval record to `.agentflow-feedback/feedback.jsonl`.
 
 ### `request-changes`
 Record blocking feedback for a step.
 
 - **Usage**: `pnpm ag request-changes <sprintDir> --step <name> --message <msg>`
+- **Example**:
+  ```bash
+  pnpm ag request-changes sprints/rate-limit-sprint --step implementation --message "Add unit tests for the limiter reset interval."
+  ```
 - **Behavior**: Writes a `request-changes` record to `.agentflow-feedback/feedback.jsonl` that halts the readiness pipeline.
 
 ### `force-pass`
 Supersede an open `request-changes` gate and record approval.
 
 - **Usage**: `pnpm ag force-pass <sprintDir> --step <name> [--note <msg>]`
+- **Example**:
+  ```bash
+  pnpm ag force-pass sprints/rate-limit-sprint --step implementation --note "Bypass for hotfix testing"
+  ```
 - **Behavior**: Overrides previous blocking feedback.
 
 ### `resolve`
 Mark a feedback record as resolved to close open `request-changes` blocks.
 
 - **Usage**: `pnpm ag resolve <sprintDir> --id <feedback-id>`
+- **Example**:
+  ```bash
+  pnpm ag resolve sprints/rate-limit-sprint --id fb_a1b2c3d4
+  ```
 - **Behavior**: Stamps `resolvedAt` on the matching feedback row in `feedback.jsonl`.
+
+For a full walkthrough of how these commands interact in a real sprint, see [Feedback Commands Guide](examples/feedback-commands.md).

@@ -54,6 +54,7 @@ usage, readiness state, and latest git checkpoint tags.
 Feedback records live in `sprints/<sprint-id>/.agentflow-feedback/`.
 The engine injects open feedback into the relevant step's next prompt and
 rubric, then blocks passing while unresolved `request-changes` records remain.
+For a detailed step-by-step walkthrough, see [Feedback Commands Guide](examples/feedback-commands.md).
 
 Approve a step:
 
