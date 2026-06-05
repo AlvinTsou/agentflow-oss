@@ -34,6 +34,38 @@ Move the project from "newly published" to "actively maintained" by showing:
 - Docs that explain the maintainer workflow model, not only commands
 - A first release candidate or release milestone
 
+## Middleman Expansion Guardrails
+
+This week should bring the `AgentFlowDev` middleman concept into
+`agentflow-oss` carefully. The OSS scope is the internal provider orchestration
+layer used by the workflow engine, not a full external packet-inspecting proxy.
+
+In scope:
+
+- Provider capability registry
+- Rule-based provider routing
+- Provider-neutral request validation
+- Security and redaction profiles
+- Route decision metadata
+- Sprint-event route audit trail
+- Public docs explaining the middleman mental model
+
+Out of scope for this week:
+
+- External HTTP proxy for arbitrary coding clients
+- Browser or web control plane
+- Multi-user auth or team dashboard
+- Private examples copied from non-public projects
+- Claims that every harness can already route to every LLM
+
+Public positioning:
+
+```text
+agentflow-oss middleman is an internal workflow routing layer. It gives the
+sprint engine a provider-neutral request shape, policy checks, routing reasons,
+provider capability validation, and audit-friendly route metadata.
+```
+
 ## Daily Plan
 
 ### Day 1 - Sync Roadmap And Open Issues
@@ -48,8 +80,9 @@ Tasks:
 - Create scoped GitHub issues:
   - `docs: explain the state-machine mental model`
   - `docs: add quality-loop and clean-context explainer`
-  - `enhancement: provider capability registry`
-  - `docs: add release readiness recipe proposal`
+  - `enhancement: add provider capability registry`
+  - `enhancement: add middleman route decision metadata`
+  - `docs: document middleman expansion boundaries`
 
 Validation:
 
@@ -138,13 +171,13 @@ Expected public signal:
 - Feature is tested, not only documented.
 - CI shows the feature remains safe in offline mode.
 
-### Day 4 - Draft Provider Capability Registry Design
+### Day 4 - Add Provider Capability Registry
 
-Purpose: convert a roadmap item into an actionable design proposal.
+Purpose: make middleman routing explicit about what each provider can support.
 
 Tasks:
 
-- Add `docs/design/provider-capability-registry.md`.
+- Add `src/middleman/capabilities.ts`.
 - Define provider capabilities:
   - streaming
   - tool calls
@@ -152,118 +185,138 @@ Tasks:
   - smoke-test support
   - token limits
   - timeout behavior
-- Document how the router should validate requests before dispatch.
-- Link the design doc from the related GitHub issue.
-
-Validation:
-
-```bash
-pnpm run test:secret-scan
-git diff --check
-```
-
-Suggested commit:
-
-```text
-docs: propose provider capability registry
-```
-
-Expected public signal:
-
-- The roadmap has design depth and a realistic next implementation path.
-
-### Day 5 - Draft Release Readiness Recipe Proposal
-
-Purpose: show a credible future recipe that fits maintainer workflows.
-
-Tasks:
-
-- Add `docs/proposals/release-readiness-recipe.md`.
-- Define the recipe inputs:
-  - repository path
-  - changelog
-  - package metadata
-  - release notes draft
-  - CI status
-- Define expected outputs:
-  - blocking findings
-  - deferred findings
-  - nit findings
-  - release readiness summary
-- Define acceptance criteria before implementation.
-
-Validation:
-
-```bash
-pnpm run test:secret-scan
-git diff --check
-```
-
-Suggested commit:
-
-```text
-docs: propose release readiness recipe
-```
-
-Expected public signal:
-
-- The project has a maintainer-focused roadmap beyond the initial CLI.
-
-### Day 6 - Prepare First Release
-
-Purpose: create a milestone that makes the public repo easier to evaluate.
-
-Tasks:
-
-- Confirm `README.md`, `ROADMAP.md`, and `docs/cli-reference.md` match current
-  behavior.
-- Run the full validation suite.
-- Cut `v0.1.0` if there are no blockers.
+  - OpenAI-compatible endpoint support
+  - reasoning-effort support
+- Export helpers:
+  - `getProviderCapabilities(provider)`
+  - `providerSupports(provider, capability)`
+  - `describeProviderCapabilities(provider)`
+- Add offline tests in `tests/poc-middleman.ts`.
+- Update `docs/provider-routing.md` with a capability matrix.
 
 Validation:
 
 ```bash
 pnpm run test
-git status --short
-gh run list --repo AlvinTsou/agentflow-oss --limit 3
+git diff --check
 ```
 
-Release command:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-gh release create v0.1.0 \
-  --repo AlvinTsou/agentflow-oss \
-  --title "v0.1.0 - Public core release" \
-  --notes "Initial public release of AgentFlow OSS: maintainer workflow engine with sprint state, provider routing, quality gates, readiness reports, feedback records, smoke tests, offline tests, secret/privacy scan, and CI."
-```
-
-Suggested commit before tagging:
+Suggested commit:
 
 ```text
-chore: prepare v0.1.0 release
+feat: add provider capability registry
 ```
 
 Expected public signal:
 
-- The repo has a visible release milestone.
-- GitHub visitors can see a stable starting point.
+- The middleman is becoming a verifiable routing layer, not just a provider
+  switch statement.
 
-### Day 7 - Publish Maintenance Log And Next Week Plan
+### Day 5 - Add Capability Validation And Route Metadata
 
-Purpose: close the first maintenance cycle with a public record.
+Purpose: make routing decisions auditable and safer before provider dispatch.
 
 Tasks:
 
+- Extend `RouteDecision` in `src/middleman/middleman.ts`.
+- Add fields:
+  - `provider`
+  - `reason`
+  - `matchedRule`
+  - `requiredCapabilities`
+  - `warnings`
+- Validate requests before dispatch:
+  - request has tools but provider lacks tool calls -> clear error
+  - streaming requested but provider lacks streaming -> clear error or fallback
+  - smoke-test unsupported provider -> actionable error
+- Add tests for:
+  - explicit provider route metadata
+  - OpenAI-compatible route metadata
+  - unsupported capability failure
+  - route warning preservation
+
+Validation:
+
+```bash
+pnpm run test
+git diff --check
+```
+
+Suggested commit:
+
+```text
+feat: add middleman route capability validation
+```
+
+Expected public signal:
+
+- The middleman records why a provider was chosen and why a request was safe to
+  send.
+
+### Day 6 - Add Security Profiles And Route Audit
+
+Purpose: turn the middleman into an audit-friendly safety boundary.
+
+Tasks:
+
+- Extend `MiddlemanPolicy` with named security profiles:
+  - `default`
+  - `strict`
+  - `off`
+- Keep the implementation regex/profile based; do not add local model
+  anonymization this week.
+- Record route decisions in sprint events or artifact metadata:
+  - provider
+  - model
+  - route reason
+  - matched rule
+  - capability warnings
+  - policy profile
+- Update `docs/provider-routing.md` with examples.
+
+Validation:
+
+```bash
+pnpm run test
+pnpm run test:secret-scan
+git diff --check
+```
+
+Suggested commit:
+
+```text
+feat: record middleman route audit metadata
+```
+
+Expected public signal:
+
+- The repo addresses the "black box" problem with route-level auditability.
+
+### Day 7 - Sync Docs, Roadmap, And Release Notes
+
+Purpose: close the middleman expansion loop with public documentation and a
+clean next milestone.
+
+Tasks:
+
+- Add `docs/design/middleman-expansion.md`.
+- Document:
+  - shipped middleman behavior
+  - this week's capability registry and route audit work
+  - deferred external proxy / web control plane work
+- Update `ROADMAP.md`:
+  - mark smoke-test as completed/current
+  - mark capability registry as current if implemented
+  - keep external proxy/web UI as future/deferred
+- Update `docs/cli-reference.md` and `docs/provider-routing.md`.
 - Add `docs/maintenance-log/2026-06-week-1.md`.
 - Summarize completed work:
   - roadmap sync
   - concept docs
   - smoke-test coverage
-  - design proposal
-  - release readiness proposal
-  - release status
+  - provider capability registry
+  - route metadata
+  - route audit
 - Close completed issues.
 - Keep 3-5 scoped issues open for continued work.
 - Draft next week goals.
@@ -279,13 +332,14 @@ gh run list --repo AlvinTsou/agentflow-oss --limit 3
 Suggested commit:
 
 ```text
-docs: add first maintenance log
+docs: document middleman expansion milestone
 ```
 
 Expected public signal:
 
-- The repo shows a real maintenance rhythm.
-- Future contributors can understand what happened and what is next.
+- The repo shows a coherent feature evolution from smoke test to provider
+  routing governance.
+- Future contributors can understand what middleman means in the OSS scope.
 
 ## Suggested Issue Backlog
 
@@ -293,9 +347,10 @@ Create or keep these issues open during the week:
 
 1. `docs: explain the state-machine mental model`
 2. `docs: add quality-loop and clean-context explainer`
-3. `enhancement: provider capability registry`
-4. `docs: add release readiness recipe proposal`
-5. `good first issue: add one more sanitized CLI example`
+3. `enhancement: add provider capability registry`
+4. `enhancement: add middleman route decision metadata`
+5. `docs: document middleman expansion boundaries`
+6. `good first issue: add one more sanitized CLI example`
 
 Recommended labels:
 
@@ -313,8 +368,10 @@ By the end of the week, the project should have:
 - At least 3 successful CI runs
 - 3-5 scoped GitHub issues
 - Roadmap aligned with implemented work
-- One first release or release candidate
+- One middleman expansion milestone or release candidate
 - Public docs explaining the core workflow model
+- Public docs explaining the OSS middleman boundary
+- Route decisions include provider and reason metadata
 - No private artifacts, local paths, secrets, or internal task traces
 
 ## Maintenance Commands

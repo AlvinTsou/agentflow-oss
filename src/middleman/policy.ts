@@ -8,7 +8,10 @@ export interface SecretFinding {
 
 export type PromptTransform = (message: MiddlemanMessage) => MiddlemanMessage;
 
+export type SecurityProfile = "default" | "strict" | "off";
+
 export interface MiddlemanPolicy {
+  profile?: SecurityProfile;
   /** Replace known secret-looking substrings before the request leaves AgentFlow. */
   redactSecrets?: boolean;
   /** Throw when a secret-looking substring is found. Takes precedence over redaction. */
@@ -73,8 +76,23 @@ export function applyMiddlemanPolicy(
   request: MiddlemanRequest,
   policy: MiddlemanPolicy = {}
 ): MiddlemanRequest {
+  let redact = policy.redactSecrets;
+  let block = policy.blockSecrets;
+
+  const profile = policy.profile ?? "default";
+  if (profile === "strict") {
+    block = block ?? true;
+    redact = redact ?? false;
+  } else if (profile === "off") {
+    block = block ?? false;
+    redact = redact ?? false;
+  } else { // default
+    block = block ?? false;
+    redact = redact ?? true;
+  }
+
   const findings = scanSecrets(request);
-  if (findings.length > 0 && policy.blockSecrets) {
+  if (findings.length > 0 && block) {
     throw new MiddlemanPolicyError("Middleman policy blocked a request containing secrets.", findings);
   }
 
@@ -91,7 +109,7 @@ export function applyMiddlemanPolicy(
 
   const transforms = policy.transforms ?? [];
   const messages = request.messages.map((message) => {
-    const initial = policy.redactSecrets ? { ...message, content: redactSecretText(message.content) } : message;
+    const initial = redact ? { ...message, content: redactSecretText(message.content) } : message;
     return transforms.reduce((current, transform) => transform(current), initial);
   });
 

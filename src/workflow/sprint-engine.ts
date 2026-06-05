@@ -517,6 +517,7 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
         tokens: ev.step.totalTokens,
         costUsd: ev.step.costUsd,
         msg: ev.fallback ? `${ev.phase}-fallback` : ev.phase,
+        route: ev.step.route,
       });
     };
 

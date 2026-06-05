@@ -38,6 +38,14 @@ export interface StepResult {
   totalTokens: number;
   durationMs: number;
   costUsd: number;
+  route?: {
+    provider: string;
+    model?: string;
+    reason: string;
+    matchedRule?: string;
+    warnings?: string[];
+    policyProfile?: string;
+  };
 }
 
 export interface RunStepOptions {

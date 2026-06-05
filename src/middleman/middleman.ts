@@ -8,10 +8,14 @@ import {
   type MiddlemanRequest,
   type MiddlemanStreamEvent,
 } from "./protocol.js";
+import { providerSupports, type ProviderCapability } from "./capabilities.js";
 
 export interface RouteDecision {
   provider: Provider;
   reason: string;
+  matchedRule?: string;
+  requiredCapabilities?: ProviderCapability[];
+  warnings?: string[];
 }
 
 export interface MiddlemanRunOptions extends ProviderRunOptions {
@@ -51,7 +55,7 @@ export class Middleman {
     rawRequest: MiddlemanRequest,
     options: MiddlemanRunOptions = {},
   ): Promise<MiddlemanRunResult> {
-    const route = this.chooseRoute(options);
+    const route = this.chooseRoute(rawRequest, options, false);
     const request = applyMiddlemanPolicy(rawRequest, {
       ...this.defaultPolicy,
       ...options.policy,
@@ -60,7 +64,21 @@ export class Middleman {
     const result = provider.runRequest
       ? await provider.runRequest(request, options)
       : await provider.run(requestToPrompt(request), options);
-    return { route, request, result };
+
+    const effectiveProfile = options.policy?.profile ?? this.defaultPolicy?.profile ?? "default";
+    const resultWithRoute = {
+      ...result,
+      route: {
+        provider: route.provider,
+        model: options.model ?? request.model,
+        reason: route.reason,
+        matchedRule: route.matchedRule,
+        warnings: route.warnings,
+        policyProfile: effectiveProfile,
+      },
+    };
+
+    return { route, request, result: resultWithRoute };
   }
 
   async *stream(prompt: string, options: MiddlemanRunOptions = {}): AsyncIterable<MiddlemanStreamEvent> {
@@ -71,16 +89,38 @@ export class Middleman {
     rawRequest: MiddlemanRequest,
     options: MiddlemanRunOptions = {},
   ): AsyncIterable<MiddlemanStreamEvent> {
-    const route = this.chooseRoute(options);
+    const route = this.chooseRoute(rawRequest, options, true);
     const request = applyMiddlemanPolicy(rawRequest, {
       ...this.defaultPolicy,
       ...options.policy,
     });
     yield { type: "route", provider: route.provider, reason: route.reason };
 
+    const effectiveProfile = options.policy?.profile ?? this.defaultPolicy?.profile ?? "default";
+    const routeMeta = {
+      provider: route.provider,
+      model: options.model ?? request.model,
+      reason: route.reason,
+      matchedRule: route.matchedRule,
+      warnings: route.warnings,
+      policyProfile: effectiveProfile,
+    };
+
     const provider = this.providers[route.provider] ?? getProvider(route.provider);
-    if (provider.runStream) {
-      yield* provider.runStream(request, options);
+    if (provider.runStream && this.hasCapability(route.provider, "streaming")) {
+      for await (const ev of provider.runStream(request, options)) {
+        if (ev.type === "done") {
+          yield {
+            ...ev,
+            response: {
+              ...ev.response,
+              route: routeMeta,
+            },
+          };
+        } else {
+          yield ev;
+        }
+      }
       return;
     }
 
@@ -88,20 +128,85 @@ export class Middleman {
       ? await provider.runRequest(request, options)
       : await provider.run(requestToPrompt(request), options);
     if (result.output) yield { type: "text-delta", text: result.output };
-    yield { type: "done", response: stepResultToResponse(result) };
+    yield {
+      type: "done",
+      response: {
+        ...stepResultToResponse(result),
+        route: routeMeta,
+      },
+    };
   }
 
-  private chooseRoute(options: MiddlemanRunOptions): RouteDecision {
+  private hasCapability(provider: Provider, capability: ProviderCapability): boolean {
+    const instance = this.providers[provider] ?? getProvider(provider);
+    if (instance) {
+      if (instance.capabilities && instance.capabilities[capability] !== undefined) {
+        return !!instance.capabilities[capability];
+      }
+      if (capability === "streaming" && typeof instance.runStream === "function") {
+        return true;
+      }
+      if (capability === "smoke-test" && typeof instance.smokeTest === "function") {
+        return true;
+      }
+    }
+    return providerSupports(provider, capability);
+  }
+
+  private chooseRoute(
+    rawRequest: MiddlemanRequest,
+    options: MiddlemanRunOptions,
+    isStream: boolean,
+  ): RouteDecision {
+    let provider = this.defaultProvider;
+    let reason = "default-provider";
+
     if (options.provider) {
-      return { provider: options.provider, reason: "explicit-provider" };
+      provider = options.provider;
+      reason = "explicit-provider";
+    } else if (options.baseUrl || options.apiKey || options.apiKeyEnv) {
+      provider = "openai-compatible";
+      reason = "openai-compatible-options";
+    } else if (options.reasoningEffort || options.reasoningEffortMaxFor80kInput) {
+      provider = "codex";
+      reason = "codex-reasoning-effort";
     }
-    if (options.baseUrl || options.apiKey || options.apiKeyEnv) {
-      return { provider: "openai-compatible", reason: "openai-compatible-options" };
+
+    const requiredCapabilities: ProviderCapability[] = [];
+    if (rawRequest.tools && rawRequest.tools.length > 0) {
+      requiredCapabilities.push("tool-calls");
     }
-    if (options.reasoningEffort) {
-      return { provider: "codex", reason: "codex-reasoning-effort" };
+    if (rawRequest.responseFormat?.type === "json_object") {
+      requiredCapabilities.push("json-response");
     }
-    return { provider: this.defaultProvider, reason: "default-provider" };
+    if (isStream) {
+      requiredCapabilities.push("streaming");
+    }
+    if (provider === "codex" && (options.reasoningEffort || options.reasoningEffortMaxFor80kInput)) {
+      requiredCapabilities.push("reasoning-effort");
+    }
+
+    const warnings: string[] = [];
+    const missingCapabilities = requiredCapabilities.filter(
+      (cap) => !this.hasCapability(provider, cap)
+    );
+
+    if (missingCapabilities.length > 0) {
+      if (missingCapabilities.length === 1 && missingCapabilities[0] === "streaming") {
+        warnings.push(`Provider "${provider}" does not support streaming natively, falling back to non-streaming query.`);
+      } else {
+        throw new Error(
+          `Provider "${provider}" does not support required capabilities: ${missingCapabilities.join(", ")}`
+        );
+      }
+    }
+
+    return {
+      provider,
+      reason,
+      requiredCapabilities,
+      warnings: warnings.length > 0 ? warnings : undefined,
+    };
   }
 }
 

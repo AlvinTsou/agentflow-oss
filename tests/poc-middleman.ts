@@ -203,6 +203,189 @@ async function assertSmokeTestWorks() {
   globalThis.fetch = originalFetch; // restore
 }
 
+function assertSecurityProfiles() {
+  console.log("[test H] middleman policy supports security profiles");
+  const request: MiddlemanRequest = {
+    messages: [{ role: "user", content: "my key is sk-abcdefghijklmnopqrstuvwxyz123456" }],
+  };
+
+  // 1. Strict profile should block
+  try {
+    applyMiddlemanPolicy(request, { profile: "strict" });
+    console.error("  FAIL: strict profile did not block secrets");
+    failures++;
+  } catch (err) {
+    assert(err instanceof MiddlemanPolicyError, "strict profile blocked with MiddlemanPolicyError");
+  }
+
+  // 2. Off profile should pass raw
+  const raw = applyMiddlemanPolicy(request, { profile: "off" });
+  assert(raw.messages[0].content.includes("sk-"), "off profile did not redact secrets");
+
+  // 3. Default profile should redact
+  const redacted = applyMiddlemanPolicy(request, { profile: "default" });
+  assert(redacted.messages[0].content.includes("[REDACTED:openai-api-key]"), "default profile redacted secrets");
+}
+
+async function assertUnsupportedCapabilityFailure() {
+  console.log("[test I] middleman rejects unsupported capabilities");
+  const fakeCodex: StepProvider = {
+    name: "codex",
+    run: async () => fakeResult("codex-run"),
+  };
+  const middleman = new Middleman({
+    providers: { codex: fakeCodex },
+    defaultProvider: "codex",
+  });
+
+  const requestWithTools: MiddlemanRequest = {
+    messages: [{ role: "user", content: "do it" }],
+    tools: [{ name: "my_tool", description: "a test tool" }],
+  };
+
+  try {
+    await middleman.runRequest(requestWithTools, { provider: "codex" });
+    console.error("  FAIL: unsupported capability did not throw");
+    failures++;
+  } catch (err) {
+    if (err instanceof Error) {
+      assert(err.message.includes("does not support required capabilities: tool-calls"), "unsupported capability throw message matches");
+    } else {
+      console.error("  FAIL: unsupported capability threw non-Error object");
+      failures++;
+    }
+  }
+}
+
+async function assertRouteWarningPreservation() {
+  console.log("[test J] middleman streaming fallback preserves warning");
+  const fakeCodex: StepProvider = {
+    name: "codex",
+    run: async () => fakeResult("codex-run"),
+  };
+  const middleman = new Middleman({
+    providers: { codex: fakeCodex },
+    defaultProvider: "codex",
+  });
+
+  const events = [];
+  for await (const event of middleman.stream("do it", { provider: "codex" })) {
+    events.push(event);
+  }
+
+  const doneEvent = events.find((ev) => ev.type === "done");
+  assert(doneEvent !== undefined, "done event found");
+  if (doneEvent && doneEvent.type === "done") {
+    assert(doneEvent.response.route !== undefined, "route metadata exists in response");
+    assert(doneEvent.response.route?.warnings !== undefined, "route warnings exist");
+    assert(doneEvent.response.route?.warnings?.[0]?.includes("does not support streaming") ?? false, "route warning message matches");
+  }
+}
+
+async function assertExplicitProviderRouteMetadata() {
+  console.log("[test K] middleman runRequest returns route metadata");
+  const fakeClaude: StepProvider = {
+    name: "claude",
+    run: async () => fakeResult("claude-run"),
+  };
+  const middleman = new Middleman({
+    providers: { claude: fakeClaude },
+    defaultProvider: "claude",
+  });
+
+  const run = await middleman.runRequest(
+    { messages: [{ role: "user", content: "hello" }] },
+    { provider: "claude", policy: { profile: "strict" } }
+  );
+
+  const route = run.result.route;
+  assert(route !== undefined, "route exists on StepResult");
+  assert(route?.provider === "claude", "provider in route metadata is correct");
+  assert(route?.policyProfile === "strict", "policy profile in route metadata is correct");
+}
+
+async function assertReasoningEffortOptionBehavior() {
+  console.log("[test L] reasoningEffortMaxFor80kInput option behavior");
+  const fakeClaude: StepProvider = {
+    name: "claude",
+    run: async () => fakeResult("claude-run"),
+  };
+  const fakeCodex: StepProvider = {
+    name: "codex",
+    run: async () => fakeResult("codex-run"),
+  };
+  const middleman = new Middleman({
+    providers: { claude: fakeClaude, codex: fakeCodex },
+    defaultProvider: "claude",
+  });
+
+  // 1. reasoningEffortMaxFor80kInput alone should route to codex
+  const run1 = await middleman.run("hello", { reasoningEffortMaxFor80kInput: "medium" });
+  assert(run1.route.provider === "codex", "reasoningEffortMaxFor80kInput alone routes to codex");
+
+  // 2. explicit provider: "claude" with reasoningEffortMaxFor80kInput should be ignored and not throw
+  try {
+    const run2 = await middleman.run("hello", { provider: "claude", reasoningEffortMaxFor80kInput: "medium" });
+    assert(run2.route.provider === "claude", "explicit provider claude wins and ignores reasoning options");
+  } catch (err) {
+    console.error("  FAIL: explicit claude with reasoning option threw error");
+    failures++;
+  }
+}
+
+async function assertCustomProviderCapabilities() {
+  console.log("[test M] custom provider overrides capabilities");
+  const customProvider: StepProvider = {
+    name: "gemini-oauth",
+    run: async () => fakeResult("custom-run"),
+    async *runStream() {
+      yield { type: "text-delta", text: "custom-stream" };
+      yield {
+        type: "done",
+        response: {
+          message: { role: "assistant", content: "custom-stream" },
+          usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+          durationMs: 1,
+          costUsd: 0,
+        },
+      };
+    },
+    capabilities: {
+      "tool-calls": true,
+    },
+  };
+
+  const middleman = new Middleman({
+    providers: { "gemini-oauth": customProvider },
+  });
+
+  // 1. gemini-oauth has runStream, so streaming should be supported dynamically
+  const events = [];
+  for await (const ev of middleman.stream("hello", { provider: "gemini-oauth" })) {
+    events.push(ev);
+  }
+  const done = events.find((e) => e.type === "done");
+  assert(done !== undefined, "custom provider streamed successfully");
+  if (done && done.type === "done") {
+    assert(done.response.route?.warnings === undefined, "no streaming fallback warnings for custom provider");
+  }
+
+  // 2. gemini-oauth lists tool-calls in capabilities, so tool calls should not throw
+  try {
+    await middleman.runRequest(
+      {
+        messages: [{ role: "user", content: "hello" }],
+        tools: [{ name: "custom-tool", description: "custom tool description" }],
+      },
+      { provider: "gemini-oauth" }
+    );
+    assert(true, "custom provider with declared tool-calls capability did not throw");
+  } catch (err) {
+    console.error("  FAIL: custom provider threw on declared capability:", err);
+    failures++;
+  }
+}
+
 async function main() {
   assertPolicyRedacts();
   assertPolicyBlocks();
@@ -211,6 +394,12 @@ async function main() {
   await assertRequestNativeProviderPath();
   await assertMiddlemanStreamsNativeEvents();
   await assertSmokeTestWorks();
+  assertSecurityProfiles();
+  await assertUnsupportedCapabilityFailure();
+  await assertRouteWarningPreservation();
+  await assertExplicitProviderRouteMetadata();
+  await assertReasoningEffortOptionBehavior();
+  await assertCustomProviderCapabilities();
 
   console.log(`\n[result] failures=${failures}`);
   process.exit(failures === 0 ? 0 : 1);

@@ -99,6 +99,15 @@ export interface SprintEvent {
    * on the step-level default. Phase 5.
    */
   providerOverride?: string;
+  /** Route decision metadata (Day 6 - Security Profiles And Route Audit). */
+  route?: {
+    provider: string;
+    model?: string;
+    reason: string;
+    matchedRule?: string;
+    warnings?: string[];
+    policyProfile?: string;
+  };
 }
 
 export class StateStore {

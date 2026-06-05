@@ -41,6 +41,7 @@ export interface StepProvider {
   runRequest?(request: MiddlemanRequest, options?: ProviderRunOptions): Promise<StepResult>;
   runStream?(request: MiddlemanRequest, options?: ProviderRunOptions): AsyncIterable<MiddlemanStreamEvent>;
   smokeTest?(options?: ProviderRunOptions): Promise<{ success: boolean; message: string }>;
+  capabilities?: Partial<Record<string, boolean>>;
 }
 
 export interface ProviderUsage {

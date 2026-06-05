@@ -50,6 +50,20 @@ different levels.
 - **Notes:** Supports Gemini model family. The `gemini-oauth` and
   `antigravity` variants are deferred to a future release.
 
+## Provider Capability Matrix
+
+The Middleman maps each provider's supported features using a capability registry:
+
+| Provider | streaming | tool-calls | json-response | smoke-test | token-limits | timeout | openai-compatible | reasoning-effort |
+|---|---|---|---|---|---|---|---|---|
+| `claude` | Yes | Yes | No | No | Yes | Yes | No | No |
+| `codex` | No | No | No | No | Yes | Yes | No | Yes |
+| `openai-compatible` | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No |
+| `openrouter` | Yes | Yes | Yes | No | Yes | Yes | Yes | No |
+| `gemini` | Yes | Yes | Yes | No | Yes | Yes | No | No |
+
+If a recipe step requests a capability that the resolved provider does not support (for example, tool calls on Codex), the Middleman throws an error before dispatching the request. For streaming requests on providers lacking streaming support, the Middleman automatically falls back to a non-streaming query and preserves a warning in the route decision.
+
 ## Routing Logic
 
 When the workflow engine needs to make a model call, the Middleman resolves
@@ -157,6 +171,24 @@ the prompt to:
 
 Token estimation uses a fast heuristic (character-based approximation) rather
 than a full tokenizer, so estimates are conservative.
+
+### Security Profiles
+
+The policy layer supports named security profiles that define default behaviors for secret scanner findings:
+
+- **`default`**: Redacts secret-looking values from prompts but allows the request to proceed.
+- **`strict`**: Instantly blocks the request and throws a `MiddlemanPolicyError` if any secrets are scanned.
+- **`off`**: Disables both redaction and blocking, passing the prompt as-is to the provider.
+
+These profiles can be configured via `policy` settings in options or config files:
+
+```json
+{
+  "policy": {
+    "profile": "strict"
+  }
+}
+```
 
 ## Per-Step and Per-Iteration Provider Overrides
 

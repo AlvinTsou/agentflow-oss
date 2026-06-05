@@ -37,17 +37,13 @@ development.
   metadata.
 - **Feedback ingestion:** File-based feedback from `.agentflow-feedback/`
   directory.
+- **Provider capability registry:** A declarative registry that maps provider names to their supported features (streaming, tool-calls, json-response, smoke-test, token-limits, timeout, etc.) to validate requests before dispatch.
+- **Capability validation & route metadata:** Automatically validates requests against provider capabilities, handles streaming fallback with warnings, and returns detailed route decisions in `StepResult`.
+- **Security profiles & route audit:** Named policy profiles (`default`, `strict`, `off`) that govern prompt scanners for secret redaction or blocking, and logs route decisions to sprint events (`events.jsonl`).
 
 ## Planned -- Post-v1.0
 
 These features are designed and scoped but not yet implemented.
-
-### Provider Improvements
-
-- **Provider capability registry.** A declarative registry that maps
-  provider names to their supported features (streaming, function calling,
-  vision, token limits). The Middleman can then validate requests against
-  provider capabilities before dispatching.
 
 ### New Recipes
 

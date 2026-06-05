@@ -51,6 +51,14 @@ export interface MiddlemanResponse {
   durationMs: number;
   costUsd: number;
   raw?: unknown;
+  route?: {
+    provider: string;
+    model?: string;
+    reason: string;
+    matchedRule?: string;
+    warnings?: string[];
+    policyProfile?: string;
+  };
 }
 
 export type MiddlemanStreamEvent =
@@ -86,6 +94,7 @@ export function stepResultToResponse(result: StepResult): MiddlemanResponse {
     },
     durationMs: result.durationMs,
     costUsd: result.costUsd,
+    route: result.route,
   };
 }
 
@@ -97,5 +106,6 @@ export function responseToStepResult(response: MiddlemanResponse): StepResult {
     totalTokens: response.usage.totalTokens,
     durationMs: response.durationMs,
     costUsd: response.costUsd,
+    route: response.route,
   };
 }
