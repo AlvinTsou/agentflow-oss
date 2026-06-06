@@ -1,0 +1,36 @@
+{
+  "name": "release-readiness",
+  "description": "3-step workflow recipe to audit a repository's readiness for public release.",
+  "steps": [
+    {
+      "name": "audit-changelog",
+      "description": "Verify that CHANGELOG.md is updated with recent commit scopes and version numbers.",
+      "provider": "claude",
+      "producePrompt": "Analyze the git history and inspect the CHANGELOG.md file in the workspace. Verify if the CHANGELOG.md contains entries that accurately match recent commit logs and version bumps. Generate a Markdown audit report summarizing the changelog state, highlighting any missing scopes or version updates.",
+      "rubric": "You are a strict release manager. Score the Changelog audit report 0-10.\n\nRubric (10 pts):\n  C1 [4] Verifies that CHANGELOG.md exists and lists correct recent commit scopes.\n  C2 [3] Confirms that recent version changes have matching version sections in the changelog.\n  C3 [3] Audit report is structured, readable, and identifies omissions clearly.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    },
+    {
+      "name": "check-version",
+      "description": "Ensure package.json version has been incremented relative to recent release tags.",
+      "provider": "claude",
+      "producePrompt": "Compare the current version specified in package.json with the latest release tag in the Git history. Verify that the version has been incremented correctly (e.g., following semantic versioning rules) relative to that tag. Generate a version check report in Markdown.",
+      "rubric": "Score the version check report 0-10.\n\nRubric (10 pts):\n  C1 [4] Accurately identifies the current version in package.json.\n  C2 [3] Correctly identifies the latest Git tag or release version.\n  C3 [3] Confirms the version increment is correct and compliant with SemVer.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    },
+    {
+      "name": "validate-docs",
+      "description": "Confirm all new source options/features have corresponding documentation coverage.",
+      "provider": "claude",
+      "producePrompt": "Analyze the recent source code changes and check if any new configuration options, CLI flags, or core features have been added. Verify that these features are appropriately documented in the docs/ directory. Generate a Markdown documentation validation report.",
+      "rubric": "Score the docs validation report 0-10.\n\nRubric (10 pts):\n  C1 [4] Lists all recent code changes, features, or CLI options.\n  C2 [3] Cross-references docs/ to ensure each feature/option is covered.\n  C3 [3] Pinpoints specific documentation gaps or outdated sections.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    }
+  ]
+}
