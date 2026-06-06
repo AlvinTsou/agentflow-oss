@@ -40,6 +40,12 @@ development.
 - **Provider capability registry:** A declarative registry that maps provider names to their supported features (streaming, tool-calls, json-response, smoke-test, token-limits, timeout, etc.) to validate requests before dispatch.
 - **Capability validation & route metadata:** Automatically validates requests against provider capabilities, handles streaming fallback with warnings, and returns detailed route decisions in `StepResult`.
 - **Security profiles & route audit:** Named policy profiles (`default`, `strict`, `off`) that govern prompt scanners for secret redaction or blocking, and logs route decisions to sprint events (`events.jsonl`).
+## v1.1 -- Release Readiness & Custom Redaction (In Progress - Week 2)
+
+This minor release introduces maintainer utility workflows and policy customization.
+
+- **Release readiness recipe:** A built-in workflow recipe that audits a repository for release readiness: changelog completeness, version bumps, dependency freshness, and documentation coverage.
+- **Custom secret redaction profiles:** Support for developer-defined custom regex patterns inside middleman policies to scrub proprietary credentials or keys.
 
 ## Planned -- Post-v1.0
 
@@ -50,18 +56,9 @@ These features are designed and scoped but not yet implemented.
 - **PR review workflow.** A recipe that takes a pull request diff as input,
   produces a structured code review, and outputs approve/request-changes
   feedback in a format compatible with GitHub PR reviews.
-- **Release readiness recipe.** A recipe that audits a repository for
-  release readiness: changelog completeness, version bumps, dependency
-  freshness, and documentation coverage.
 - **Security review recipe.** A recipe that performs a structured security
   review of a codebase, checking for common vulnerability patterns,
   dependency audit results, and secret exposure.
-
-### Policy and Security
-
-- **Secret redaction profiles.** Configurable profiles that define which
-  patterns to redact and how. Supports project-specific patterns beyond
-  the default API key formats.
 
 ## Future
 
