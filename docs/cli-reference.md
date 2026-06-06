@@ -120,4 +120,22 @@ Run a pre-flight gateway smoke test to verify connectivity and credential validi
     --model gpt-4o-mini
   ```
 
+- **Failure Examples**:
+  * **Timeout**: If the gateway is unreachable or slow, the command yields a timeout error after the threshold:
+    ```text
+    ✗ Smoke test failed: Request timed out after 5000ms
+    ```
+  * **401 Unauthorized**: If credentials are invalid, the gateway returns status code 401:
+    ```text
+    ✗ Smoke test failed: Gateway returned status 401: Unauthorized
+    ```
+  * **Missing Model**: If the model option is omitted for providers requiring it (such as `openai-compatible`), it yields a validation error:
+    ```text
+    ✗ Smoke test failed: Missing required --model option for provider openai-compatible
+    ```
+  * **Gateway Error**: If the gateway is misconfigured (e.g. 502 Bad Gateway or 404 Not Found):
+    ```text
+    ✗ Smoke test failed: Gateway returned status 502: Bad Gateway
+    ```
+
 For a full walkthrough of how these commands interact in a real sprint, see [Feedback Commands Guide](examples/feedback-commands.md).
