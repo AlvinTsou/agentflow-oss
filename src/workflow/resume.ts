@@ -145,6 +145,12 @@ export async function resumeSprint(opts: ResumeSprintOptions): Promise<SprintRes
     gitResetHard(resetTag, sprintDir);
   }
 
+  // Clear stale failure context to let work continue under clean status
+  if (state.failedAt) {
+    delete state.failedAt;
+    store.save(state);
+  }
+
   return runSprint({
     ...opts,
     sprintId,
