@@ -10,9 +10,9 @@ import {
   sprintInitTagName,
 } from "./src/workflow/git-checkpoint.js";
 import { StateStore, type SprintState } from "./src/workflow/state-store.js";
-import { createSDDRecipe, type SDDRecipeOptions } from "./recipes/sdd/recipe.js";
-import { createResearchRecipe, type ResearchRecipeOptions } from "./recipes/research/recipe.js";
-import { recipe as miniRecipe } from "./recipes/mini/recipe.js";
+import { getRecipe } from "./src/recipe/registry.js";
+import type { SDDRecipeOptions } from "./recipes/sdd/recipe.js";
+import type { ResearchRecipeOptions } from "./recipes/research/recipe.js";
 import { parsePinSpec } from "./run-research.js";
 import type { Recipe, StepDef } from "./src/recipe/types.js";
 import type { Provider } from "./src/middleman/provider.js";
@@ -22,7 +22,7 @@ import type { ReadinessReport } from "./src/workflow/readiness.js";
 const ALLOWED_REVIEW_PROVIDERS: ReadonlySet<Provider> = new Set([
   "codex", "claude", "gemini", "openrouter", "openai-compatible",
 ]);
-const KNOWN_RECIPES = ["mini", "sdd", "research"] as const;
+const KNOWN_RECIPES = ["mini", "sdd", "research", "release-readiness"] as const;
 type KnownRecipe = (typeof KNOWN_RECIPES)[number];
 
 interface ParsedInitArgs {
@@ -146,29 +146,31 @@ interface BuiltRecipe {
   recipeOptions: Record<string, unknown>;
 }
 
-export function buildRecipe(parsed: ParsedInitArgs): BuiltRecipe {
-  if (parsed.recipe === "mini") {
-    return { recipe: miniRecipe, recipeOptions: {} };
-  }
-  if (parsed.recipe === "sdd") {
-    const stepProviders = parsed.litePreset ? SDD_LITE_PRESET_STEP_PROVIDERS : undefined;
-    const sddOpts: SDDRecipeOptions = {
-      language: parsed.language!,
+export async function buildRecipe(parsed: ParsedInitArgs): Promise<BuiltRecipe> {
+  const stepProviders = parsed.litePreset
+    ? parsed.recipe === "sdd"
+      ? SDD_LITE_PRESET_STEP_PROVIDERS
+      : RESEARCH_LITE_PRESET_STEP_PROVIDERS
+    : undefined;
+
+  const recipe = await getRecipe(parsed.recipe, {
+    language: parsed.language,
+    reviewProvider: parsed.reviewProvider,
+    reviewModel: parsed.reviewModel,
+    stepProviders,
+    pinIters: parsed.pinIters,
+  });
+
+  return {
+    recipe,
+    recipeOptions: {
+      ...(parsed.language ? { language: parsed.language } : {}),
       ...(parsed.reviewProvider ? { reviewProvider: parsed.reviewProvider } : {}),
       ...(parsed.reviewModel ? { reviewModel: parsed.reviewModel } : {}),
       ...(stepProviders ? { stepProviders } : {}),
-    };
-    const recipe = createSDDRecipe(sddOpts);
-    return { recipe, recipeOptions: { ...sddOpts } };
-  }
-  // research
-  const stepProviders = parsed.litePreset ? RESEARCH_LITE_PRESET_STEP_PROVIDERS : undefined;
-  const hasPins = Object.keys(parsed.pinIters).length > 0;
-  const researchOpts: ResearchRecipeOptions = {
-    ...(stepProviders ? { stepProviders } : {}),
-    ...(hasPins ? { pinIters: parsed.pinIters } : {}),
+      ...(parsed.pinIters ? { pinIters: parsed.pinIters } : {}),
+    },
   };
-  return { recipe: createResearchRecipe(researchOpts), recipeOptions: { ...researchOpts } };
 }
 
 interface SkeletonResult {
@@ -323,7 +325,7 @@ async function main(): Promise<void> {
       )
     : parsed.problem ?? "# Brief\n\n(Edit INPUT.md to fill in the brief before running.)\n";
 
-  const { recipe, recipeOptions } = buildRecipe(parsed);
+  const { recipe, recipeOptions } = await buildRecipe(parsed);
   const prefix = parsed.sprintIdPrefix ?? parsed.recipe;
   const sprintId = `${prefix}-${Date.now()}`;
   const sprintDir = join(process.cwd(), "sprints", sprintId);

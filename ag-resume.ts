@@ -4,12 +4,9 @@ import { isAbsolute, resolve } from "node:path";
 import { resumeSprint } from "./src/workflow/resume.js";
 import { StateStore } from "./src/workflow/state-store.js";
 import { sidecarHumanGate } from "./src/workflow/human-gate.js";
-import { recipe as miniRecipe } from "./recipes/mini/recipe.js";
-import { createSDDRecipe, type SDDRecipeOptions } from "./recipes/sdd/recipe.js";
-import {
-  createResearchRecipe,
-  type ResearchRecipeOptions,
-} from "./recipes/research/recipe.js";
+import { getRecipe } from "./src/recipe/registry.js";
+import type { SDDRecipeOptions } from "./recipes/sdd/recipe.js";
+import type { ResearchRecipeOptions } from "./recipes/research/recipe.js";
 import type { Recipe } from "./src/recipe/types.js";
 
 interface ParsedResumeArgs {
@@ -89,25 +86,14 @@ async function loadRecipe(
   sddOpts: SDDRecipeBuildOpts,
   researchOpts: ResearchRecipeOptions,
 ): Promise<Recipe> {
-  // The CLI surface uses short keys (mini / sdd / research) but
-  // the engine persists `recipe.name`, which can differ:
-  //   - mini recipe.name === "mini-money-formatter" (the recipe's own id)
-  // Both short and persisted names are accepted so resumes against
-  // 7.2-init-prepared sprints land on the same recipe builder.
-  if (name === "mini" || name === "mini-money-formatter") return miniRecipe;
-  if (name === "sdd") {
-    return createSDDRecipe({
-      language: sddOpts.language,
-      reviewProvider: sddOpts.reviewProvider,
-      reviewModel: sddOpts.reviewModel,
-      stepProviders: sddOpts.stepProviders,
-    });
-  }
-  if (name === "research") {
-    return createResearchRecipe(researchOpts);
-  }
-  // Future: dynamic import from `recipes/<name>/recipe.ts`
-  throw new Error(`Unknown recipe "${name}". Known: mini, mini-money-formatter, sdd, research`);
+  const stepProviders = sddOpts.stepProviders ?? researchOpts.stepProviders;
+  return getRecipe(name, {
+    language: sddOpts.language,
+    reviewProvider: sddOpts.reviewProvider,
+    reviewModel: sddOpts.reviewModel,
+    stepProviders,
+    pinIters: researchOpts.pinIters,
+  });
 }
 
 async function main() {
