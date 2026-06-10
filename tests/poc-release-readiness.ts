@@ -155,6 +155,16 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
         },
       };
     }
+    if (currentScenario === "missing-package-json") {
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "- [blocking] package.json does not exist in the workspace.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    }
     return {
       route: { provider: "claude" as const, reason: "mock" },
       request: rawRequest,
@@ -172,6 +182,16 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
         request: rawRequest,
         result: {
           output: `{"score": 6, "passed": ["C1", "C2"], "failed": ["C3"], "notes": "Version mismatch detected."}`,
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    }
+    if (currentScenario === "missing-package-json") {
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: `{"score": 0, "passed": [], "failed": ["C1", "C2", "C3"], "notes": "package.json is missing."}`,
           inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
         },
       };
@@ -255,6 +275,12 @@ const scenarios = [
     name: "version-mismatch",
     expectedCategory: "deferred" as const,
     expectedText: "package.json version 0.1.0 does not match latest release 0.2.0 in the changelog.",
+    stepName: "02-check-version",
+  },
+  {
+    name: "missing-package-json",
+    expectedCategory: "blocking" as const,
+    expectedText: "package.json does not exist in the workspace.",
     stepName: "02-check-version",
   },
   {
