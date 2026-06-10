@@ -386,6 +386,66 @@ async function assertCustomProviderCapabilities() {
   }
 }
 
+function assertCustomRedactions() {
+  console.log("[test N] custom secret redaction policy behavior");
+
+  const policy = {
+    customRedactions: [
+      { kind: "custom-token", pattern: "MY_SECRET_TOKEN_[0-9]{4}" }
+    ]
+  };
+
+  // 1. default profile (should redact custom patterns)
+  {
+    const req: MiddlemanRequest = {
+      messages: [{ role: "user", content: "My token is MY_SECRET_TOKEN_1234" }]
+    };
+    const redacted = applyMiddlemanPolicy(req, { ...policy, profile: "default" });
+    assert(
+      redacted.messages[0]?.content.includes("My token is [REDACTED:custom-token]") ?? false,
+      "custom pattern redacted under default profile"
+    );
+  }
+
+  // 2. strict profile (should block custom patterns)
+  {
+    const req: MiddlemanRequest = {
+      messages: [{ role: "user", content: "My token is MY_SECRET_TOKEN_1234" }]
+    };
+    try {
+      applyMiddlemanPolicy(req, { ...policy, profile: "strict" });
+      console.error("  FAIL: strict profile did not block custom pattern");
+      failures++;
+    } catch (err) {
+      assert(err instanceof MiddlemanPolicyError, "custom pattern blocks under strict profile");
+    }
+  }
+
+  // 3. off profile (should bypass custom scanning and redaction)
+  {
+    const req: MiddlemanRequest = {
+      messages: [{ role: "user", content: "My token is MY_SECRET_TOKEN_1234" }]
+    };
+    const normal = applyMiddlemanPolicy(req, { ...policy, profile: "off" });
+    assert(
+      normal.messages[0]?.content.includes("My token is MY_SECRET_TOKEN_1234") ?? false,
+      "custom pattern bypasses under off profile"
+    );
+  }
+
+  // 4. no false positives on ordinary code identifiers
+  {
+    const req: MiddlemanRequest = {
+      messages: [{ role: "user", content: "My token is MY_SECRET_TOKEN_ABCD" }]
+    };
+    const redacted = applyMiddlemanPolicy(req, { ...policy, profile: "default" });
+    assert(
+      redacted.messages[0]?.content.includes("My token is MY_SECRET_TOKEN_ABCD") ?? false,
+      "no false positives on ordinary code identifiers"
+    );
+  }
+}
+
 async function main() {
   assertPolicyRedacts();
   assertPolicyBlocks();
@@ -400,6 +460,7 @@ async function main() {
   await assertExplicitProviderRouteMetadata();
   await assertReasoningEffortOptionBehavior();
   await assertCustomProviderCapabilities();
+  assertCustomRedactions();
 
   console.log(`\n[result] failures=${failures}`);
   process.exit(failures === 0 ? 0 : 1);

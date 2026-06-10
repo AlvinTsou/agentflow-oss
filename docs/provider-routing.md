@@ -190,6 +190,37 @@ These profiles can be configured via `policy` settings in options or config file
 }
 ```
 
+### Custom Redaction Patterns
+
+You can define project-specific redaction rules to prevent developers from leaking non-standard proprietary keys, IDs, or sensitive strings. Custom patterns are specified as an array under `customRedactions` in the policy configuration.
+
+Each custom redaction rule supports:
+- **`kind`**: A unique string identifier for the pattern category.
+- **`pattern`**: A standard RegExp pattern string.
+- **`replacement`**: (Optional) The replacement string. Defaults to `[REDACTED:<kind>]`.
+
+Custom redaction rules follow the selected **Security Profile**:
+- Under **`default`**, matching strings are redacted with the replacement string.
+- Under **`strict`**, matching strings instantly block the request, raising a `MiddlemanPolicyError`.
+- Under **`off`**, custom pattern scanning is bypassed.
+
+Example configuration in `agentflow.config.json` (or passed via options):
+
+```json
+{
+  "policy": {
+    "profile": "default",
+    "customRedactions": [
+      {
+        "kind": "custom-auth-token",
+        "pattern": "MY_PROPRIETARY_AUTH_[0-9a-f]{16}",
+        "replacement": "[REDACTED:custom-auth-token]"
+      }
+    ]
+  }
+}
+```
+
 ## Per-Step and Per-Iteration Provider Overrides
 
 ### Per-Step Override

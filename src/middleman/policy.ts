@@ -19,6 +19,11 @@ export interface MiddlemanPolicy {
   /** Rough heuristic: 1 token ~= 4 characters. */
   maxEstimatedTokens?: number;
   transforms?: PromptTransform[];
+  customRedactions?: Array<{
+    kind: string;
+    pattern: string;
+    replacement?: string;
+  }>;
 }
 
 export class MiddlemanPolicyError extends Error {
@@ -46,10 +51,23 @@ export function estimateTokens(request: MiddlemanRequest): number {
   return Math.ceil(chars / 4);
 }
 
-export function scanSecrets(request: MiddlemanRequest): SecretFinding[] {
+export function scanSecrets(request: MiddlemanRequest, policy?: MiddlemanPolicy): SecretFinding[] {
   const findings: SecretFinding[] = [];
+  const patterns = [...SECRET_PATTERNS];
+
+  if (policy?.profile !== "off" && policy?.customRedactions) {
+    for (const custom of policy.customRedactions) {
+      try {
+        const regex = new RegExp(custom.pattern, "g");
+        patterns.push({ kind: custom.kind, regex });
+      } catch {
+        // Compile custom patterns safely: ignore malformed patterns
+      }
+    }
+  }
+
   request.messages.forEach((message, messageIndex) => {
-    for (const pattern of SECRET_PATTERNS) {
+    for (const pattern of patterns) {
       pattern.regex.lastIndex = 0;
       for (const match of message.content.matchAll(pattern.regex)) {
         findings.push({
@@ -63,12 +81,29 @@ export function scanSecrets(request: MiddlemanRequest): SecretFinding[] {
   return findings;
 }
 
-export function redactSecretText(text: string): string {
+export function redactSecretText(text: string, policy?: MiddlemanPolicy): string {
   let redacted = text;
+
+  // Apply standard redactions
   for (const pattern of SECRET_PATTERNS) {
     pattern.regex.lastIndex = 0;
     redacted = redacted.replace(pattern.regex, `[REDACTED:${pattern.kind}]`);
   }
+
+  // Apply custom redactions
+  if (policy?.profile !== "off" && policy?.customRedactions) {
+    for (const custom of policy.customRedactions) {
+      try {
+        const regex = new RegExp(custom.pattern, "g");
+        const replacement = custom.replacement ?? `[REDACTED:${custom.kind}]`;
+        regex.lastIndex = 0;
+        redacted = redacted.replace(regex, replacement);
+      } catch {
+        // Compile custom patterns safely: ignore malformed patterns
+      }
+    }
+  }
+
   return redacted;
 }
 
@@ -91,7 +126,7 @@ export function applyMiddlemanPolicy(
     redact = redact ?? true;
   }
 
-  const findings = scanSecrets(request);
+  const findings = scanSecrets(request, policy);
   if (findings.length > 0 && block) {
     throw new MiddlemanPolicyError("Middleman policy blocked a request containing secrets.", findings);
   }
@@ -109,7 +144,7 @@ export function applyMiddlemanPolicy(
 
   const transforms = policy.transforms ?? [];
   const messages = request.messages.map((message) => {
-    const initial = redact ? { ...message, content: redactSecretText(message.content) } : message;
+    const initial = redact ? { ...message, content: redactSecretText(message.content, policy) } : message;
     return transforms.reduce((current, transform) => transform(current), initial);
   });
 
