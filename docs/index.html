@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>agentflow-oss</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Maintainer workflow engine for repeatable AI-assisted coding.">
+  <script>
+    // Detect preferred browser locale and redirect to appropriate subpage
+    const supportedLocales = ['en', 'zh-tw', 'zh-cn', 'ja', 'ko'];
+    const userLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+    
+    let target = 'en';
+    if (userLang.startsWith('zh-tw') || userLang.startsWith('zh-hk')) {
+      target = 'zh-tw';
+    } else if (userLang.startsWith('zh')) {
+      target = 'zh-cn';
+    } else if (userLang.startsWith('ja')) {
+      target = 'ja';
+    } else if (userLang.startsWith('ko')) {
+      target = 'ko';
+    }
+    
+    window.location.replace('./' + target + '/index.html');
+  </script>
+</head>
+<body style="background-color: #0b0b0f; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
+  <div style="text-align: center; padding: 2rem;">
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">agentflow-oss</h1>
+    <p style="color: #94a3b8; margin-bottom: 2rem;">Redirecting to your preferred language...</p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="./en/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">English</a>
+      <a href="./zh-tw/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">繁體中文</a>
+      <a href="./zh-cn/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">简体中文</a>
+      <a href="./ja/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">日本語</a>
+      <a href="./ko/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">한국어</a>
+    </div>
+  </div>
+</body>
+</html>

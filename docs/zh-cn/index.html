@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>agentflow-oss - 可重复的 AI 辅助编程工作流</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="一个 CLI-first 的 workflow engine，用于让 AI-assisted coding、review、quality gates、provider routing、sprint state 和 carry-over workflows 变得可重复、可追踪、可维护。">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-glow-left"></div>
+
+  <header>
+    <div class="container nav-container">
+      <a href="#" class="logo">agentflow-oss</a>
+      <nav>
+        <a href="../../README.md">快速开始</a>
+        <a href="#how-it-works">工作方式</a>
+        <a href="#recipes">Recipes</a>
+        <a href="#progress">项目进展</a>
+        <a href="../../ROADMAP.md">Roadmap</a>
+        <a href="../cli-reference.md">文档</a>
+        <a href="https://github.com/AlvinTsou/agentflow-oss">GitHub</a>
+      </nav>
+      <div class="lang-selector">
+        <button class="lang-btn">🌐 简体中文</button>
+        <div class="lang-dropdown">
+          <a href="../en/index.html">English</a>
+          <a href="../zh-tw/index.html">繁體中文</a>
+          <a href="#" class="active">简体中文</a>
+          <a href="../ja/index.html">日本語</a>
+          <a href="../ko/index.html">한국어</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>agentflow-oss</h1>
+      <p class="tagline">一个 CLI-first 的 workflow engine，用于让 AI-assisted coding、review、quality gates、provider routing、sprint state 和 carry-over workflows 变得可重复、可追踪、可维护。</p>
+      
+      <div class="cta-group">
+        <a href="../../README.md" class="btn btn-primary">快速开始</a>
+        <a href="../../ROADMAP.md" class="btn btn-secondary">查看 Roadmap</a>
+        <div class="install-box">
+          <span>$</span> pnpm ag init sdd --problem "..."
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('pnpm ag init sdd --problem \'...\'')">📋</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal simulator mockup -->
+    <section style="padding: 0 0 4rem 0;">
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+          </div>
+          <div class="terminal-title">agentflow-engine --sprint-runner</div>
+          <div></div>
+        </div>
+        <div class="terminal-body" id="terminal-content">
+          <!-- Animated content loaded via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Value Props Section -->
+    <section id="why-agentflow">
+      <h2 class="section-title">为何选择 AgentFlow？</h2>
+      <p class="section-desc">传统的 AI 编程助手大多为黑盒子的聊天界面。AgentFlow 则是直接在您的代码库中引入结构化的状态机和自动化的质量关卡。</p>
+      <div class="props-grid">
+        <div class="prop-card">
+          <div class="prop-icon">🔄</div>
+          <h3>质量循环 Rubrics</h3>
+          <p>每次代码产出都会经历严格的“审查-修复”质量循环，在提交之前会按照定义的标准进行评分验证。</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">📍</div>
+          <h3>Git Checkpoints</h3>
+          <p>引擎会自动将每个步骤的执行结果提交至本地 Git 工作区，方便您随时回滚、检视变更或无缝续传。</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">🛡️</div>
+          <h3>Middleman 安全防护</h3>
+          <p>内置 Provider 路由层。防止模型能力不匹配、记录每次路由决策，并自动对敏感密钥进行脱敏。</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">📋</div>
+          <h3>Readiness 准备度审计</h3>
+          <p>在代码合并前，自动将剩余的 Issues 整理成结构化的 Blocked (阻碍)、Deferred (延期) 或 Nit (微调) 信号。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Recipe Explorer -->
+    <section id="recipes">
+      <h2 class="section-title">内置 Recipes 工作流</h2>
+      <p class="section-desc">Recipes 定义了 AI 引擎编排步骤的方式。在下方探索我们核心的工作流。</p>
+      
+      <div class="recipe-explorer">
+        <div class="recipe-tabs">
+          <button class="recipe-tab active" onclick="switchRecipe('sdd')">Spec-Driven Development</button>
+          <button class="recipe-tab" onclick="switchRecipe('research')">结构化研究</button>
+          <button class="recipe-tab" onclick="switchRecipe('release')">Release 准备度审计</button>
+        </div>
+
+        <!-- SDD Recipe -->
+        <div class="recipe-content active" id="recipe-sdd">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> sdd</div>
+            <div class="meta-pill"><span>Mode:</span> real-codebase</div>
+            <div class="meta-pill"><span>Quality Loop:</span> 启用 (分数目标: 9+)</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Spec-Driven Development (sdd) 专为编写实体代码而设计。它会分析需求 brief、原型设计变更、运行本地测试、在质量循环中自动修复错误，并在最后提交干净的实现。
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. 讨论需求</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. 探索代码库</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. 代码原型</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. 审查评分</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">5. 自动修复循环</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">6. 整理打包</div>
+          </div>
+        </div>
+
+        <!-- Research Recipe -->
+        <div class="recipe-content" id="recipe-research">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> research</div>
+            <div class="meta-pill"><span>Mode:</span> synthetic</div>
+            <div class="meta-pill"><span>Concurrency:</span> 并行子代理</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            一个完整的研究引擎。它会拆解并规划研究主题、同时派发多个并行子代理进行资料检索与调查、合成调查结果、通过独立审查者进行评估批判，最后生成完整研究报告。
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. 定义主题</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. 规划子问题</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. 并行调查 (Parallel Agents)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. 合成整理</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">5. 批判审查</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">6. 最终定稿</div>
+          </div>
+        </div>
+
+        <!-- Release Recipe -->
+        <div class="recipe-content" id="recipe-release">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> release-readiness</div>
+            <div class="meta-pill"><span>Mode:</span> real-codebase</div>
+            <div class="meta-pill"><span>Audit Type:</span> 版本与文档</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            在发布新版本前自动执行代码库检查。它会核对 Changelog 是否包含最近的提交、比对 package.json 的版本是否与 Git tag 相符，并确认代码中的变更已同步至 Markdown 文件。
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. 审计 Changelog</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. 检查 SemVer 版本</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. 验证文档同步</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. 导出 readiness.json</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress Section -->
+    <section id="progress">
+      <h2 class="section-title">项目进展</h2>
+      <div class="card progress-container">
+        <div class="progress-header">
+          <span class="badge badge-in-progress">Week 3 活跃开发中</span>
+          <span class="progress-date">进度更新时间：2026-06-10</span>
+        </div>
+        <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+          公开 repository 的 OSS baseline 已经到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 和 active roadmap 都已建立。Core engine 已能运行 sprint recipes、保存 artifacts 和 state、应用 quality loops、支持 resume，并生成 readiness signals。Middleman layer 已支持 provider capability validation、route metadata 记录，以及 provider calls 前的 security profiles。
+        </p>
+        <ul class="progress-list">
+          <li class="progress-item">
+            <div>
+              <h3>OSS 基建完备</h3>
+              <p>以 Apache-2.0 协议开源，完成贡献指南、安全政策、PR 模板与基本 CI 配置。</p>
+            </div>
+          </li>
+          <li class="progress-item">
+            <div>
+              <h3>核心 CLI 工作流</h3>
+              <p>支持：<code>init</code>, <code>run</code>, <code>resume</code>, <code>status</code>, <code>replay</code>, <code>approve</code>, <code>request-changes</code>, <code>force-pass</code>, 和 <code>resolve</code>。</p>
+            </div>
+          </li>
+          <li class="progress-item">
+            <div>
+              <h3>Middleman 整合路由</h3>
+              <p>内置路由层，具备模型能力验证、路径元数据记录，以及安全过滤 Profile。</p>
+            </div>
+          </li>
+          <li class="progress-item current">
+            <div>
+              <h3>Release-Readiness 强化</h3>
+              <p>当前重点是 release-readiness tests、fixture coverage、custom redaction patterns 以及准备 v0.2.0 版本发布草稿。</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Shipped & Future Features -->
+    <section id="features">
+      <h2 class="section-title">功能明细</h2>
+      <p class="section-desc">详细列出目前已就绪的功能，以及我们正在开发中的下一阶段目标。</p>
+      
+      <div class="features-container">
+        <div>
+          <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit'; color: var(--accent-green);">已发布功能</h3>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>CLI-first 运行引擎</h4>
+                <p>专为终端设计，接管本地工作区与 Git status checkpoint 安全存档，并流畅协调代理任务。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Middleman 路由机制</h4>
+                <p>依模型能力做 Provider 路由分流，内置安全 Profile 与请求验证机制。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>质量循环 Rubric 验证</h4>
+                <p>自动化的产出-审查-修正循环，针对设定之 Rubrics 进行评分与迭代，直到符合标准为止。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>状态保存与 Readiness</h4>
+                <p>保存所有日志、生成物与 token 费用，并在代码提交至 production 前产出准备度信号。</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit'; color: var(--accent-purple);">未来规划中</h3>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>Release Readiness 测试套件</h4>
+                <p>离线测试框架，凭借 package 与 docs fixture 确保发布逻辑的正确性与安全性。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>自定义敏感词脱敏</h4>
+                <p>允许项目在 agentflow.config.json 中定义正则表达式，在请求前对定制敏感词与密钥进行脱敏屏蔽。</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>路由审计回放格式化</h4>
+                <p>支持以格式化终端版面或导出报表方式，回放 Middleman 的路由决策与调用历史，方便团队检视。</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>稳定版 Web 管理界面</h4>
+                <p>待 CLI 引擎的底层架构完全稳定后，提供轻量级的网页 dashboard 控制台。</p>
+              </div>
+            </div>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="../architecture.md">架构设计</a>
+        <a href="../provider-routing.md">Provider 路由</a>
+        <a href="../maintenance-plans.md">维护计划</a>
+        <a href="https://github.com/AlvinTsou/agentflow-oss">GitHub 仓库</a>
+      </div>
+      <a href="https://github.com/sponsors/safishamsi" class="footer-sponsor">☕ 支持创作者</a>
+      <p>&copy; 2026 agentflow-oss. 采用 Apache-2.0 协议授权开源。</p>
+      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-10</p>
+    </div>
+  </footer>
+
+  <script>
+    // Terminal Simulator
+    document.addEventListener('DOMContentLoaded', () => {
+      const lines = [
+        { text: '$ pnpm ag run sprints/sdd-17180000', type: 'prompt' },
+        { text: '[sprint] Loading recipe "sdd"... Done. (6 steps)', type: 'info' },
+        { text: '[step: prototype] Running step in "real-codebase" mode...', type: 'info' },
+        { text: '[step: prototype] Phase: produce. Invoking Claude...', type: 'info' },
+        { text: '[step: prototype] Phase: produce. Output generated.', type: 'info' },
+        { text: '[step: prototype] Phase: review. Invoking Codex (reviewer)...', type: 'info' },
+        { text: '>> Review Verdict: FAIL. Score: 8/10 (target: 9).', type: 'fail' },
+        { text: '[step: prototype] Phase: fix. Invoking Claude to patch code...', type: 'info' },
+        { text: '[step: prototype] Phase: review (attempt #2). Invoking Codex...', type: 'info' },
+        { text: '>> Review Verdict: PASS. Score: 10/10.', type: 'success' },
+        { text: '[step: prototype] Committing changes & creating git tag sdd-17180000/prototype-done', type: 'info' },
+        { text: '[step: wrap] Running step...', type: 'info' },
+        { text: '[sprint] All steps completed! Readiness: READY (with 2 deferred nits)', type: 'success' }
+      ];
+      const container = document.getElementById('terminal-content');
+      let idx = 0;
+      
+      function addLine() {
+        if (idx >= lines.length) return;
+        const line = lines[idx];
+        const div = document.createElement('div');
+        div.className = 'terminal-line';
+        div.style.animationDelay = '0s';
+        
+        if (line.type === 'prompt') {
+          const spanPrompt = document.createElement('span');
+          spanPrompt.className = 't-prompt';
+          spanPrompt.textContent = '$ ';
+          const spanCmd = document.createElement('span');
+          spanCmd.className = 't-cmd';
+          spanCmd.textContent = line.text.substring(2);
+          div.appendChild(spanPrompt);
+          div.appendChild(spanCmd);
+        } else {
+          const spanText = document.createElement('span');
+          spanText.className = 't-' + line.type;
+          spanText.textContent = line.text;
+          div.appendChild(spanText);
+        }
+        
+        container.appendChild(div);
+        idx++;
+        setTimeout(addLine, idx === 1 ? 1200 : idx === 7 || idx === 10 ? 1500 : 700);
+      }
+      
+      addLine();
+    });
+
+    // Recipe Switcher
+    function switchRecipe(recipeId) {
+      document.querySelectorAll('.recipe-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.recipe-tab').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('recipe-' + recipeId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+  </script>
+</body>
+</html>

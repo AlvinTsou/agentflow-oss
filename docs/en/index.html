@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>agentflow-oss - Repeatable AI-Assisted Coding Workflows</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A CLI-first workflow engine for repeatable AI-assisted coding, review, quality gates, provider routing, sprint state, and carry-over workflows.">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-glow-left"></div>
+
+  <header>
+    <div class="container nav-container">
+      <a href="#" class="logo">agentflow-oss</a>
+      <nav>
+        <a href="../../README.md">Quick Start</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#recipes">Recipes</a>
+        <a href="#progress">Progress</a>
+        <a href="../../ROADMAP.md">Roadmap</a>
+        <a href="../cli-reference.md">Docs</a>
+        <a href="https://github.com/AlvinTsou/agentflow-oss">GitHub</a>
+      </nav>
+      <div class="lang-selector">
+        <button class="lang-btn">🌐 English</button>
+        <div class="lang-dropdown">
+          <a href="#" class="active">English</a>
+          <a href="../zh-tw/index.html">繁體中文</a>
+          <a href="../zh-cn/index.html">简体中文</a>
+          <a href="../ja/index.html">日本語</a>
+          <a href="../ko/index.html">한국어</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>agentflow-oss</h1>
+      <p class="tagline">A CLI-first workflow engine for repeatable AI-assisted coding, review, quality gates, provider routing, sprint state, and carry-over workflows.</p>
+      
+      <div class="cta-group">
+        <a href="../../README.md" class="btn btn-primary">Read Quick Start</a>
+        <a href="../../ROADMAP.md" class="btn btn-secondary">View Roadmap</a>
+        <div class="install-box">
+          <span>$</span> pnpm ag init sdd --problem "..."
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('pnpm ag init sdd --problem \'...\'')">📋</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal simulator mockup -->
+    <section style="padding: 0 0 4rem 0;">
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+          </div>
+          <div class="terminal-title">agentflow-engine --sprint-runner</div>
+          <div></div>
+        </div>
+        <div class="terminal-body" id="terminal-content">
+          <!-- Animated content loaded via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Value Props Section -->
+    <section id="why-agentflow">
+      <h2 class="section-title">Why AgentFlow?</h2>
+      <p class="section-desc">Traditional AI coding assistants act as black-box chat interfaces. AgentFlow introduces structured state machines and automated quality gates directly in your codebase.</p>
+      <div class="props-grid">
+        <div class="prop-card">
+          <div class="prop-icon">🔄</div>
+          <h3>Quality Loop Rubrics</h3>
+          <p>Every output goes through a strict multi-attempt review-and-fix loop. Code is scored against defined criteria before check-in.</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">📍</div>
+          <h3>Git Checkpoints</h3>
+          <p>The engine commits step results to a local Git workspace automatically. Rollback, review diffs, or resume seamlessly.</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">🛡️</div>
+          <h3>Middleman Safety</h3>
+          <p>An internal provider routing layer. Prevents API capability mismatch, audits route decisions, and redacts proprietary secrets.</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">📋</div>
+          <h3>Readiness Audit</h3>
+          <p>Summarizes tickets and code state into structured blocking, deferred, or nit signals before merging into production.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Recipe Explorer -->
+    <section id="recipes">
+      <h2 class="section-title">Built-in Recipes</h2>
+      <p class="section-desc">Recipes define how the AI engine orchestrates steps. Explore our core workflows below.</p>
+      
+      <div class="recipe-explorer">
+        <div class="recipe-tabs">
+          <button class="recipe-tab active" onclick="switchRecipe('sdd')">Spec-Driven Development</button>
+          <button class="recipe-tab" onclick="switchRecipe('research')">Structured Research</button>
+          <button class="recipe-tab" onclick="switchRecipe('release')">Release Readiness</button>
+        </div>
+
+        <!-- SDD Recipe -->
+        <div class="recipe-content active" id="recipe-sdd">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> sdd</div>
+            <div class="meta-pill"><span>Mode:</span> real-codebase</div>
+            <div class="meta-pill"><span>Quality Loop:</span> Active (Score: 9+)</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Spec-Driven Development (sdd) is designed for writing physical software. It discusses the brief, prototypes changes, runs your local tests, auto-patches failures in a loop, and stages the clean implementation.
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. Discuss Brief</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. Explore Codebase</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. Prototype</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. Review & Score</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">5. Fix Loop</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">6. Wrap Up</div>
+          </div>
+        </div>
+
+        <!-- Research Recipe -->
+        <div class="recipe-content" id="recipe-research">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> research</div>
+            <div class="meta-pill"><span>Mode:</span> synthetic</div>
+            <div class="meta-pill"><span>Concurrency:</span> Parallel Subagents</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            A thorough research engine that frames the initial query, writes a detailed research plan, runs parallel subagents to investigate details concurrently, synthesizes findings, critiques the output via an independent reviewer, and produces a final summary.
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. Frame Topic</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. Plan Subquestions</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. Investigate (Parallel Agents)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. Synthesize</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">5. Critique</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">6. Finalize</div>
+          </div>
+        </div>
+
+        <!-- Release Recipe -->
+        <div class="recipe-content" id="recipe-release">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> release-readiness</div>
+            <div class="meta-pill"><span>Mode:</span> real-codebase</div>
+            <div class="meta-pill"><span>Audit Type:</span> Version & Docs</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Automates repository checks prior to publishing. It audits the changelog for missing commits, checks package version formatting against Git tags, and cross-references source features against markdown files.
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. Audit Changelog</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. Check Version (SemVer)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. Validate Docs Sync</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. Generate readiness.json</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress Section -->
+    <section id="progress">
+      <h2 class="section-title">Project Progress</h2>
+      <div class="card progress-container">
+        <div class="progress-header">
+          <span class="badge badge-in-progress">Week 3 Active Focus</span>
+          <span class="progress-date">Status snapshot: 2026-06-10</span>
+        </div>
+        <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+          The public repository now has its OSS baseline in place: CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, and an active roadmap. The core engine runs sprint recipes, persists artifacts and state, applies quality loops, supports resume, and records readiness signals. The middleman layer now validates provider capabilities, records route metadata, and applies security profiles before provider calls.
+        </p>
+        <ul class="progress-list">
+          <li class="progress-item">
+            <div>
+              <h3>OSS Baseline Established</h3>
+              <p>Prepared for public OSS maintenance with Apache-2.0 licensing, contribution docs, security policy, and templates.</p>
+            </div>
+          </li>
+          <li class="progress-item">
+            <div>
+              <h3>Core CLI Workflows</h3>
+              <p>Workflows ready: <code>init</code>, <code>run</code>, <code>resume</code>, <code>status</code>, <code>replay</code>, <code>approve</code>, <code>request-changes</code>, <code>force-pass</code>, and <code>resolve</code>.</p>
+            </div>
+          </li>
+          <li class="progress-item">
+            <div>
+              <h3>Orchestrated Middleman Routing</h3>
+              <p>Shipped internal routing layer featuring capability validation, route metadata, and security profiles.</p>
+            </div>
+          </li>
+          <li class="progress-item current">
+            <div>
+              <h3>Release-Readiness Hardening</h3>
+              <p>Currently focusing on release-readiness tests, fixture coverage, custom secret redaction patterns, and v0.2.0 release candidate prep.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Shipped & Future Features -->
+    <section id="features">
+      <h2 class="section-title">Features Breakdown</h2>
+      <p class="section-desc">A detailed look at what is ready today and what is on our active horizon.</p>
+      
+      <div class="features-container">
+        <div>
+          <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit'; color: var(--accent-green);">Ready & Shipped</h3>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>CLI-first Sprint Engine</h4>
+                <p>Built for terminals. Manages local worktrees, checkpoints state, and coordinates agent tasks.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Orchestrated Middleman Routing</h4>
+                <p>Performs capabilities validation, routes models by step requirement, and profiles security blocks.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Rubric Quality Loop</h4>
+                <p>Runs output code through rigorous automated test-and-repair iterations until the rubric target is satisfied.</p>
+              </div>
+            </div>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Sprint State & Readiness</h4>
+                <p>Saves all logs, artifacts, and token costs. Generates readiness signals before production staging.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit'; color: var(--accent-purple);">Planned & Upcoming</h3>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>Release Readiness Fixture Suite</h4>
+                <p>Offline testing using package and document mock scenarios to ensure changelog-and-version logic safety.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>Custom secret redaction patterns</h4>
+                <p>Configure custom project regex patterns in agentflow.config.json to redact proprietary tokens before routing.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>Pretty-Print Route Replays</h4>
+                <p>CLI command formatter to replay the middleman route audit histories for team review.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>Web Control Plane</h4>
+                <p>A lightweight web UI dashboard after the core CLI engine structures stabilize.</p>
+              </div>
+            </div>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="../architecture.md">Architecture</a>
+        <a href="../provider-routing.md">Provider Routing</a>
+        <a href="../maintenance-plans.md">Maintenance Plans</a>
+        <a href="https://github.com/AlvinTsou/agentflow-oss">GitHub Repository</a>
+      </div>
+      <a href="https://github.com/sponsors/safishamsi" class="footer-sponsor">☕ Support the Creator</a>
+      <p>&copy; 2026 agentflow-oss. Released under the Apache-2.0 License.</p>
+      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-10</p>
+    </div>
+  </footer>
+
+  <script>
+    // Terminal Simulator
+    document.addEventListener('DOMContentLoaded', () => {
+      const lines = [
+        { text: '$ pnpm ag run sprints/sdd-17180000', type: 'prompt' },
+        { text: '[sprint] Loading recipe "sdd"... Done. (6 steps)', type: 'info' },
+        { text: '[step: prototype] Running step in "real-codebase" mode...', type: 'info' },
+        { text: '[step: prototype] Phase: produce. Invoking Claude...', type: 'info' },
+        { text: '[step: prototype] Phase: produce. Output generated.', type: 'info' },
+        { text: '[step: prototype] Phase: review. Invoking Codex (reviewer)...', type: 'info' },
+        { text: '>> Review Verdict: FAIL. Score: 8/10 (target: 9).', type: 'fail' },
+        { text: '[step: prototype] Phase: fix. Invoking Claude to patch code...', type: 'info' },
+        { text: '[step: prototype] Phase: review (attempt #2). Invoking Codex...', type: 'info' },
+        { text: '>> Review Verdict: PASS. Score: 10/10.', type: 'success' },
+        { text: '[step: prototype] Committing changes & creating git tag sdd-17180000/prototype-done', type: 'info' },
+        { text: '[step: wrap] Running step...', type: 'info' },
+        { text: '[sprint] All steps completed! Readiness: READY (with 2 deferred nits)', type: 'success' }
+      ];
+      const container = document.getElementById('terminal-content');
+      let idx = 0;
+      
+      function addLine() {
+        if (idx >= lines.length) return;
+        const line = lines[idx];
+        const div = document.createElement('div');
+        div.className = 'terminal-line';
+        div.style.animationDelay = '0s';
+        
+        if (line.type === 'prompt') {
+          const spanPrompt = document.createElement('span');
+          spanPrompt.className = 't-prompt';
+          spanPrompt.textContent = '$ ';
+          const spanCmd = document.createElement('span');
+          spanCmd.className = 't-cmd';
+          spanCmd.textContent = line.text.substring(2);
+          div.appendChild(spanPrompt);
+          div.appendChild(spanCmd);
+        } else {
+          const spanText = document.createElement('span');
+          spanText.className = 't-' + line.type;
+          spanText.textContent = line.text;
+          div.appendChild(spanText);
+        }
+        
+        container.appendChild(div);
+        idx++;
+        setTimeout(addLine, idx === 1 ? 1200 : idx === 7 || idx === 10 ? 1500 : 700);
+      }
+      
+      addLine();
+    });
+
+    // Recipe Switcher
+    function switchRecipe(recipeId) {
+      document.querySelectorAll('.recipe-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.recipe-tab').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('recipe-' + recipeId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+  </script>
+</body>
+</html>

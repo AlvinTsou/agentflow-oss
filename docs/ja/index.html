@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>agentflow-oss - 再現可能な AI 支援開発ワークフロー</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI-assisted coding、review、quality gates、provider routing、sprint state、carry-over workflows を、再現可能で追跡しやすい形にする CLI-first の workflow engine。">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-glow-left"></div>
+
+  <header>
+    <div class="container nav-container">
+      <a href="#" class="logo">agentflow-oss</a>
+      <nav>
+        <a href="../../README.md">クイックスタート</a>
+        <a href="#how-it-works">仕組み</a>
+        <a href="#recipes">Recipes</a>
+        <a href="#progress">進捗</a>
+        <a href="../../ROADMAP.md">Roadmap</a>
+        <a href="../cli-reference.md">ドキュメント</a>
+        <a href="https://github.com/AlvinTsou/agentflow-oss">GitHub</a>
+      </nav>
+      <div class="lang-selector">
+        <button class="lang-btn">🌐 日本語</button>
+        <div class="lang-dropdown">
+          <a href="../en/index.html">English</a>
+          <a href="../zh-tw/index.html">繁體中文</a>
+          <a href="../zh-cn/index.html">简体中文</a>
+          <a href="#" class="active">日本語</a>
+          <a href="../ko/index.html">한국어</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>agentflow-oss</h1>
+      <p class="tagline">AI-assisted coding、review、quality gates、provider routing、sprint state、carry-over workflows を、再現可能で追跡しやすい形にする CLI-first の workflow engine。</p>
+      
+      <div class="cta-group">
+        <a href="../../README.md" class="btn btn-primary">クイックスタート</a>
+        <a href="../../ROADMAP.md" class="btn btn-secondary">Roadmap を見る</a>
+        <div class="install-box">
+          <span>$</span> pnpm ag init sdd --problem "..."
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('pnpm ag init sdd --problem \'...\'')">📋</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal simulator mockup -->
+    <section style="padding: 0 0 4rem 0;">
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+          </div>
+          <div class="terminal-title">agentflow-engine --sprint-runner</div>
+          <div></div>
+        </div>
+        <div class="terminal-body" id="terminal-content">
+          <!-- Animated content loaded via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Value Props Section -->
+    <section id="why-agentflow">
+      <h2 class="section-title">なぜ AgentFlow なのか？</h2>
+      <p class="section-desc">従来の AI 支援コーディングはブラックボックスなチャットUIでした。AgentFlow は、開発プロセスに直接、構造化された状態遷移と自動品質ゲート（Quality Gate）を導入します。</p>
+      <div class="props-grid">
+        <div class="prop-card">
+          <div class="prop-icon">🔄</div>
+          <h3>品質ループ (Rubrics)</h3>
+          <p>すべての成果物は厳密な「作成・検証・修正」ループを経由します。コードのコミット前に、設定した判定基準に基づいて自動評価を行います。</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">📍</div>
+          <h3>Git セーブポイント</h3>
+          <p>エンジンが自動で各ステップの変更をローカル Git ワークスペースにコミットします。いつでも簡単に巻き戻しや、途中からの再開が可能です。</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">🛡️</div>
+          <h3>Middleman ガード</h3>
+          <p>プロバイダの抽象ルーティング層。LLMの機能ミスマッチを防ぎ、呼び出し履歴を監査ログに記録、機密情報の自動マスクを行います。</p>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">📋</div>
+          <h3>Readiness 監査</h3>
+          <p>プロダクションへのマージ前に、コードや課題の状態を Blocked (阻害項目)、Deferred (保留)、Nit (軽微な修正) に分類して整理します。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Recipe Explorer -->
+    <section id="recipes">
+      <h2 class="section-title">組み込み Recipes ワークフロー</h2>
+      <p class="section-desc">Recipes は AI ワークフローの各手順を定義します。コアとなる処理の流れを以下で探索できます。</p>
+      
+      <div class="recipe-explorer">
+        <div class="recipe-tabs">
+          <button class="recipe-tab active" onclick="switchRecipe('sdd')">Spec-Driven Development</button>
+          <button class="recipe-tab" onclick="switchRecipe('research')">構造化リサーチ</button>
+          <button class="recipe-tab" onclick="switchRecipe('release')">リリース準備度判定</button>
+        </div>
+
+        <!-- SDD Recipe -->
+        <div class="recipe-content active" id="recipe-sdd">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> sdd</div>
+            <div class="meta-pill"><span>Mode:</span> real-codebase</div>
+            <div class="meta-pill"><span>Quality Loop:</span> 有効 (目標スコア: 9+)</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            Spec-Driven Development (sdd) はコードの自動開発に特化しています。仕様定義の相談から、モック作成、ローカルテストの実行と自動修正ループ、そして最終成果物の反映までを行います。
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. 仕様相談</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. コード探索</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. プロトタイプ作成</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. 自動レビュー評価</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">5. 修正ループ</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">6. コード整理</div>
+          </div>
+        </div>
+
+        <!-- Research Recipe -->
+        <div class="recipe-content" id="recipe-research">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> research</div>
+            <div class="meta-pill"><span>Mode:</span> synthetic</div>
+            <div class="meta-pill"><span>Concurrency:</span> 並列サブエージェント</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            高度なリサーチエンジン。初期クエリをサブ質問に分解し、複数のサブエージェントを並列に走らせて調査を行い、内容を統合したのち独立したレビューアーが評価・完成させます。
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. テーマ決定</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. 質問の分解</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. 並列調査 (Parallel Agents)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. 情報の統合</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">5. レビュー評価</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">6. 報告書完成</div>
+          </div>
+        </div>
+
+        <!-- Release Recipe -->
+        <div class="recipe-content" id="recipe-release">
+          <div class="recipe-meta">
+            <div class="meta-pill"><span>Recipe:</span> release-readiness</div>
+            <div class="meta-pill"><span>Mode:</span> real-codebase</div>
+            <div class="meta-pill"><span>Audit Type:</span> バージョンと文書</div>
+          </div>
+          <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+            公開前の自動リポジトリ監査。Changelog に最近のコミット漏れがないかの確認、package.json のバージョンと Git タグの整合性検証、およびドキュメントの同期状態をチェックします。
+          </p>
+          <div class="flowchart">
+            <div class="flow-node">1. Changelog 監査</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">2. バージョン整合性</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">3. ドキュメント同期検証</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">4. readiness.json 作成</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress Section -->
+    <section id="progress">
+      <h2 class="section-title">プロジェクトの進捗</h2>
+      <div class="card progress-container">
+        <div class="progress-header">
+          <span class="badge badge-in-progress">Week 3 開発中</span>
+          <span class="progress-date">ステータス更新日：2026-06-10</span>
+        </div>
+        <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+          公開 repository の OSS baseline は整備済みです。CI、issue templates、security policy、contribution docs、CLI reference、architecture docs、active roadmap が用意されています。Core engine は sprint recipes の実行、artifacts と state の保存、quality loops、resume、readiness signals をサポートしています。Middleman layer は provider capability validation、route metadata の記録、provider calls 前の security profiles を提供します。
+        </p>
+        <ul class="progress-list">
+          <li class="progress-item">
+            <div>
+              <h3>OSS 基盤の整備完了</h3>
+              <p>Apache-2.0 ライセンスに基づく公開メンテナンス、貢献ガイド、セキュリティポリシー、各種テンプレート、CI 設定が完了しました。</p>
+            </div>
+          </li>
+          <li class="progress-item">
+            <div>
+              <h3>コア CLI ワークフロー</h3>
+              <p>以下のワークフローに対応：<code>init</code>, <code>run</code>, <code>resume</code>, <code>status</code>, <code>replay</code>, <code>approve</code>, <code>request-changes</code>, <code>force-pass</code>, <code>resolve</code>。</p>
+            </div>
+          </li>
+          <li class="progress-item">
+            <div>
+              <h3>Middleman 統合ルーティング</h3>
+              <p>機能検証、ルートメタデータの記録、セキュリティプロファイルを適用する内部ルーティング層をリリースしました。</p>
+            </div>
+          </li>
+          <li class="progress-item current">
+            <div>
+              <h3>リリース準備機能の強化</h3>
+              <p>現在、release-readiness テスト、fixture カバレッジ、カスタム秘密情報マスク機能の実装、および v0.2.0 リリースノートの下書き作成に注力しています。</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Shipped & Future Features -->
+    <section id="features">
+      <h2 class="section-title">機能のロードマップ</h2>
+      <p class="section-desc">現在リリース済みの機能と、今後の開発予定機能の詳細な内訳です。</p>
+      
+      <div class="features-container">
+        <div>
+          <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit'; color: var(--accent-green);">実装済みの機能</h3>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>CLI-first 実行エンジン</h4>
+                <p>ターミナル運用に特化。ローカルワークスペース管理、Git セーブポイント、各エージェントタスクの進行を管理。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Middleman ルーティング層</h4>
+                <p>プロバイダの自動選択、要件別のモデル配分、セキュリティポリシーによる呼び出し制限。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>品質ループ Rubric 検証</h4>
+                <p>成果物コードの自動テスト・修正ループ。設定した Rubric の品質を満たすまで繰り返し調整を実行。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>実行ステートと準備度</h4>
+                <p>全ログ、生成コード、消費トークンの記録。マージ前にプロジェクト全体の準備度シグナルを生成。</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit'; color: var(--accent-purple);">今後の予定</h3>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>Release Readiness 監査テスト</h4>
+                <p>パッケージやドキュメントの Fixture データを活用した、オフラインでの安全なリポジトリ確認テスト。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>カスタム秘密情報マスク</h4>
+                <p>正規表現を設定ファイルに記述し、社外に送信されるリクエスト内の重要トークンをマスク処理。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>呼び出し履歴のリプレイ出力</h4>
+                <p>Middleman が行ったルーティングの決定やコールログを、見やすい形式でターミナルに出力する監査機能。</p>
+              </div>
+            </li>
+            <div class="feature-item">
+              <span class="feature-marker future"></span>
+              <div class="feature-info">
+                <h4>Web ダッシュボード UI</h4>
+                <p>CLI 内部のアーキテクチャが完全に安定した段階で提供を開始する、視覚的コントロールパネル。</p>
+              </div>
+            </div>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="../architecture.md">アーキテクチャ設計</a>
+        <a href="../provider-routing.md">プロバイダー配分</a>
+        <a href="../maintenance-plans.md">メンテナンス計画</a>
+        <a href="https://github.com/AlvinTsou/agentflow-oss">GitHub リポジトリ</a>
+      </div>
+      <a href="https://github.com/sponsors/safishamsi" class="footer-sponsor">☕ 開発者を支援する</a>
+      <p>&copy; 2026 agentflow-oss. Apache-2.0 ライセンスのもとでオープンソースとして公開されています。</p>
+      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-10</p>
+    </div>
+  </footer>
+
+  <script>
+    // Terminal Simulator
+    document.addEventListener('DOMContentLoaded', () => {
+      const lines = [
+        { text: '$ pnpm ag run sprints/sdd-17180000', type: 'prompt' },
+        { text: '[sprint] Loading recipe "sdd"... Done. (6 steps)', type: 'info' },
+        { text: '[step: prototype] Running step in "real-codebase" mode...', type: 'info' },
+        { text: '[step: prototype] Phase: produce. Invoking Claude...', type: 'info' },
+        { text: '[step: prototype] Phase: produce. Output generated.', type: 'info' },
+        { text: '[step: prototype] Phase: review. Invoking Codex (reviewer)...', type: 'info' },
+        { text: '>> Review Verdict: FAIL. Score: 8/10 (target: 9).', type: 'fail' },
+        { text: '[step: prototype] Phase: fix. Invoking Claude to patch code...', type: 'info' },
+        { text: '[step: prototype] Phase: review (attempt #2). Invoking Codex...', type: 'info' },
+        { text: '>> Review Verdict: PASS. Score: 10/10.', type: 'success' },
+        { text: '[step: prototype] Committing changes & creating git tag sdd-17180000/prototype-done', type: 'info' },
+        { text: '[step: wrap] Running step...', type: 'info' },
+        { text: '[sprint] All steps completed! Readiness: READY (with 2 deferred nits)', type: 'success' }
+      ];
+      const container = document.getElementById('terminal-content');
+      let idx = 0;
+      
+      function addLine() {
+        if (idx >= lines.length) return;
+        const line = lines[idx];
+        const div = document.createElement('div');
+        div.className = 'terminal-line';
+        div.style.animationDelay = '0s';
+        
+        if (line.type === 'prompt') {
+          const spanPrompt = document.createElement('span');
+          spanPrompt.className = 't-prompt';
+          spanPrompt.textContent = '$ ';
+          const spanCmd = document.createElement('span');
+          spanCmd.className = 't-cmd';
+          spanCmd.textContent = line.text.substring(2);
+          div.appendChild(spanPrompt);
+          div.appendChild(spanCmd);
+        } else {
+          const spanText = document.createElement('span');
+          spanText.className = 't-' + line.type;
+          spanText.textContent = line.text;
+          div.appendChild(spanText);
+        }
+        
+        container.appendChild(div);
+        idx++;
+        setTimeout(addLine, idx === 1 ? 1200 : idx === 7 || idx === 10 ? 1500 : 700);
+      }
+      
+      addLine();
+    });
+
+    // Recipe Switcher
+    function switchRecipe(recipeId) {
+      document.querySelectorAll('.recipe-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.recipe-tab').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('recipe-' + recipeId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+  </script>
+</body>
+</html>
