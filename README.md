@@ -121,6 +121,7 @@ configuration reference.
 - [Provider Routing](docs/provider-routing.md)
 - [CLI Reference](docs/cli-reference.md)
 - [Release Checklist](docs/release-checklist.md)
+- [GitHub Pages Refresh Plan](docs/proposals/github-pages-refresh-plan.md)
 - [Feedback Commands Guide](docs/examples/feedback-commands.md)
 - [Basic SDD Sprint Walkthrough](docs/examples/basic-sdd-sprint.md)
 - [Contributing](CONTRIBUTING.md)
