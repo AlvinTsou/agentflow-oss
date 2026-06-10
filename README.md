@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/AlvinTsou/agentflow-oss/actions/workflows/ci.yml/badge.svg)](https://github.com/AlvinTsou/agentflow-oss/actions/workflows/ci.yml)
 
+[English](https://AlvinTsou.github.io/agentflow-oss/en/) | [繁體中文](https://AlvinTsou.github.io/agentflow-oss/zh-tw/) | [简体中文](https://AlvinTsou.github.io/agentflow-oss/zh-cn/) | [日本語](https://AlvinTsou.github.io/agentflow-oss/ja/) | [한국어](https://AlvinTsou.github.io/agentflow-oss/ko/)
+
 **Maintainer workflow engine for repeatable AI-assisted coding.**
 
 agentflow-oss gives maintainers a structured sprint engine that orchestrates
