@@ -972,3 +972,114 @@ gh run watch --repo AlvinTsou/agentflow-oss --exit-status
 - Do not add provider-backed tests to default CI.
 - Do not add large new features before the release-readiness and custom redaction work is tested.
 - Do not force-push `main`.
+
+---
+
+## Week 4 Active Maintenance Plan
+
+This plan outlines the next maintenance cycle for `agentflow-oss` (from 2026-06-15 through 2026-06-21).
+
+The focus for this week is on enhancing maintainer workflow recipes and hardening CLI usability.
+
+### Week Objective
+
+- **PR Review Recipe Proposal**: Design and draft steps for a PR review recipe to support automated code reviews.
+- **Release-Readiness Hardening**: Address potential edge cases and optimize validation logic in the release-readiness recipe runner.
+- **Route Audit Replay Formatting**: Enhance formatting for replay commands to improve route decision readability.
+- **CLI Layout Improvements**: Tidy and improve terminal layouts for `ag status` and overall CLI outputs.
+- **Custom Redaction Config Integration**: Seamlessly resolve and load `customRedactions` directly within the `agentflow.config.json` loader.
+
+### Daily Plan
+
+#### Day 1 - PR Review Recipe Proposal
+- Purpose: Design a structured code review recipe that outputs GitHub-compatible feedback.
+- Tasks:
+  - Add `docs/proposals/pr-review-recipe.md`.
+  - Outline steps, rubrics, and model provider configurations.
+- Validation:
+  ```bash
+  pnpm run test:secret-scan
+  git diff --check
+  ```
+- Suggested commit:
+  ```text
+  docs: propose PR review recipe workflow
+  ```
+
+#### Day 2 - Release-Readiness Hardening
+- Purpose: Harden verification steps for release-readiness recipe.
+- Tasks:
+  - Add edge case assertions in readiness checks (e.g. handle missing package.json gracefully).
+- Validation:
+  ```bash
+  pnpm run test
+  ```
+- Suggested commit:
+  ```text
+  refactor: harden release-readiness edge cases
+  ```
+
+#### Day 3 - Route Audit Replay Formatting
+- Purpose: Improve routing analysis logs in replay modes.
+- Tasks:
+  - Update `src/workflow/sprint-engine.ts` and audit reports to format decisions more cleanly.
+- Validation:
+  ```bash
+  pnpm run test
+  ```
+- Suggested commit:
+  ```text
+  feat: format route audit replay logs
+  ```
+
+#### Day 4 - CLI Layout Improvements
+- Purpose: Enhance user feedback readability during sprint execution.
+- Tasks:
+  - Adjust formatting and alignment inside `ag-status.ts`.
+- Validation:
+  ```bash
+  pnpm run test
+  ```
+- Suggested commit:
+  ```text
+  ui: improve status CLI terminal layout
+  ```
+
+#### Day 5 - Custom Redaction Config Integration
+- Purpose: Load custom redactions dynamically from config files.
+- Tasks:
+  - Update `src/workflow/config-loader.ts` to deserialize and validate `customRedactions` policy array.
+- Validation:
+  ```bash
+  pnpm run test
+  ```
+- Suggested commit:
+  ```text
+  feat: integrate custom redactions into config-loader
+  ```
+
+#### Day 6 - Sync Docs and Roadmap
+- Purpose: Align roadmap milestones.
+- Tasks:
+  - Sync `ROADMAP.md` and draft next week goals.
+- Validation:
+  ```bash
+  pnpm run test
+  ```
+- Suggested commit:
+  ```text
+  docs: sync roadmap and plan week 5
+  ```
+
+#### Day 7 - Finalize Week 4 Log
+- Purpose: Close out Week 4 work.
+- Tasks:
+  - Add `docs/maintenance-log/2026-06-week-4.md`.
+- Validation:
+  ```bash
+  pnpm run test
+  ```
+- Suggested commit:
+  ```text
+  docs: finalize week 4 maintenance log
+  ```
