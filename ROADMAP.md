@@ -57,15 +57,20 @@ This release focuses on hardening existing recipes, improving CLI readability, a
 - **CLI layout improvements:** Aligned labels and improved formatting of status reports for terminal readability.
 - **Custom redaction config integration:** Dynamically load and validate policy profiles and custom redactions from `agentflow.config.json`.
 
+## v1.3 -- PR Review Workflow (Completed)
+
+This release implements a production-grade automated code review workflow that integrates git diff changes into LLM prompt contexts.
+
+- **PR review recipe implementation:** Expose a fully working `pr-review` JSON recipe for automated pull request audits.
+- **Git diff context ingestion:** Support dynamic substitution of the `{{GIT_DIFF}}` placeholder with the sprint's code diff relative to initialization.
+- **Offline test suite validation:** Implement comprehensive mock fixture tests validating clean and buggy PR paths under offline conditions.
+
 ## Planned -- Post-v1.0
 
 These features are designed and scoped but not yet implemented.
 
 ### New Recipes
 
-- **PR review workflow.** A recipe that takes a pull request diff as input,
-  produces a structured code review, and outputs approve/request-changes
-  feedback in a format compatible with GitHub PR reviews.
 - **Security review recipe.** A recipe that performs a structured security
   review of a codebase, checking for common vulnerability patterns,
   dependency audit results, and secret exposure.
