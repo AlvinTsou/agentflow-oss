@@ -6,7 +6,7 @@
       "name": "analyze-diff",
       "description": "Inspect the PR diff and summarize modified files, changed exports, and potential risk levels.",
       "provider": "claude",
-      "producePrompt": "Inspect the git diff of the current Pull Request. Analyze the list of modified files, summarize the scope of code changes, identify any modified exports, and assess the risk level of these modifications (e.g. database schema changes, authentication modifications). Produce a detailed Markdown summary.",
+      "producePrompt": "Inspect the git diff of the current Pull Request:\n\n```diff\n{{GIT_DIFF}}\n```\n\nAnalyze the list of modified files, summarize the scope of code changes, identify any modified exports, and assess the risk level of these modifications (e.g. database schema changes, authentication modifications). Produce a detailed Markdown summary.",
       "rubric": "Score the PR diff analysis report 0-10.\n\nRubric (10 pts):\n  C1 [4] Correctly lists all modified files and categorizes them (e.g. source, tests, docs).\n  C2 [3] Summarizes the scope and impact of changes on the existing architecture.\n  C3 [3] Flags high-risk modifications (e.g. core auth, database migrations).\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
       "targetScore": 9,
       "maxRepeat": 3,

@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { execFileSync } from "node:child_process";
 import { qualityLoop, type PhaseEvent } from "./quality-loop.js";
 import { StateStore } from "./state-store.js";
 import { initSprintRepo } from "./sprint-repo.js";
@@ -237,7 +238,19 @@ function buildFixPrompt(rubric: string, output: string, review: string): string 
 function resolveProducePrompt(step: StepDef, ctx: StepContext): string {
   const p = step.producePrompt;
   if (!p) throw new Error(`Step "${step.name}" missing producePrompt.`);
-  return typeof p === "function" ? p(ctx) : p;
+  let promptText = typeof p === "function" ? p(ctx) : p;
+
+  if (promptText.includes("{{GIT_DIFF}}")) {
+    let diff = "";
+    try {
+      diff = execFileSync("git", ["diff", `${sprintInitTagName(ctx.sprintId)}~1`, "HEAD"], { cwd: ctx.sprintDir, encoding: "utf-8" });
+    } catch (err) {
+      diff = `(Could not retrieve git diff: ${err instanceof Error ? err.message : String(err)})`;
+    }
+    promptText = promptText.replace("{{GIT_DIFF}}", diff);
+  }
+
+  return promptText;
 }
 
 function resolveRubric(step: StepDef, ctx: StepContext): string {

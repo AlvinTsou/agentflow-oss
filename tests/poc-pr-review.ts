@@ -9,13 +9,14 @@ import assert from "node:assert/strict";
 import { getRecipe } from "../src/recipe/registry.js";
 import type { Recipe, StepDef } from "../src/recipe/types.js";
 import { runSprint } from "../src/workflow/sprint-engine.js";
-import { mkdtempSync, rmSync, writeFileSync, cpSync, readFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdtempSync, rmSync, writeFileSync, cpSync, readFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const testTmpDir = join(__dirname, "tmp");
+mkdirSync(testTmpDir, { recursive: true });
 import { mock } from "node:test";
 import { Middleman } from "../src/middleman/middleman.js";
 import type { MiddlemanRequest } from "../src/middleman/protocol.js";
@@ -64,6 +65,11 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
 
   // analyze-diff
   if (userMessage.includes("Inspect the git diff of the current Pull Request")) {
+    if (currentScenario === "clean") {
+      assert.match(userMessage, /export function add/);
+    } else if (currentScenario === "buggy") {
+      assert.match(userMessage, /setInterval/);
+    }
     return {
       route: { provider: "claude" as const, reason: "mock" },
       request: rawRequest,
@@ -154,7 +160,7 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
 // Run clean PR sprint
 {
   currentScenario = "clean";
-  const tmp = mkdtempSync(join(tmpdir(), "ag-pr-test-clean-"));
+  const tmp = mkdtempSync(join(testTmpDir, "ag-pr-test-clean-"));
   try {
     const sprintId = `pr-test-clean-${Date.now()}`;
     // Copy clean-pr fixture
@@ -193,7 +199,7 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
 // Run buggy PR sprint
 {
   currentScenario = "buggy";
-  const tmp = mkdtempSync(join(tmpdir(), "ag-pr-test-buggy-"));
+  const tmp = mkdtempSync(join(testTmpDir, "ag-pr-test-buggy-"));
   try {
     const sprintId = `pr-test-buggy-${Date.now()}`;
     // Copy buggy-pr fixture
