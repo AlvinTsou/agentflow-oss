@@ -1083,3 +1083,88 @@ The focus for this week is on enhancing maintainer workflow recipes and hardenin
   ```text
   docs: finalize week 4 maintenance log
   ```
+
+---
+
+## Week 5 Active Maintenance Plan
+
+This plan outlines the next maintenance cycle for `agentflow-oss` (from 2026-06-22 through 2026-06-28).
+
+The objective is to implement and verify the `pr-review` workflow recipe, incorporating git diff ingestion and automated review feedback.
+
+### Week Objective
+
+- **PR Review Recipe Definition**: Add `recipes/pr-review.json` defining the 3-step code review workflow.
+- **Recipe Ingestion & Init**: Support `pnpm ag init pr-review` in CLI.
+- **Offline PR Review Tests**: Set up a test suite `tests/poc-pr-review.ts` to mock and execute the recipe.
+- **PR Review Fixtures**: Create realistic buggy/clean diff fixtures to cover rubrics and verify scores.
+- **Git Diff Ingestion Tooling**: Integrate mechanisms to feed repository changes into the step context.
+
+### Daily Plan
+
+#### Day 1 - PR Review Recipe Definition and Init
+- Purpose: Add recipe json structure and expose initialization via CLI.
+- Tasks:
+  - Add `recipes/pr-review.json` containing `analyze-diff`, `review-code`, and `generate-feedback` steps.
+  - Update `ag-init.ts` to include `"pr-review"` in `KNOWN_RECIPES`.
+- Validation:
+  ```bash
+  pnpm run test:secret-scan
+  git diff --check
+  ```
+- Suggested commit:
+  ```text
+  feat: define pr-review recipe and expose init
+  ```
+
+#### Day 2 - Offline PR Review Tests
+- Purpose: Create executable offline coverage for the `pr-review` sprint.
+- Tasks:
+  - Create `tests/poc-pr-review.ts` that mocks LLM responses and asserts sprint execution.
+- Validation:
+  ```bash
+  pnpm run test:offline
+  ```
+- Suggested commit:
+  ```text
+  test: add offline execution tests for pr-review
+  ```
+
+#### Day 3 - PR Review Fixtures
+- Purpose: Verify rubrics against realistic PR reviews.
+- Tasks:
+  - Create review fixtures under `tests/fixtures/pr-review/` simulating bug findings vs clean passes.
+- Validation:
+  ```bash
+  pnpm run test:offline
+  ```
+- Suggested commit:
+  ```text
+  test: add pr-review fixtures and rubric tests
+  ```
+
+#### Day 4 - Git Diff Ingestion Tooling
+- Purpose: Provide tools to feed current git diff into step prompts.
+- Tasks:
+  - Add logic to capture `git diff` output and supply it to the sprint context.
+- Validation:
+  ```bash
+  pnpm run test:offline
+  ```
+- Suggested commit:
+  ```text
+  feat: support git diff ingestion for pr-review context
+  ```
+
+#### Day 5 - Sync Docs and Finalize Week 5
+- Purpose: Synchronize logs and roadmap.
+- Tasks:
+  - Sync `ROADMAP.md` and add `docs/maintenance-log/2026-06-week-5.md`.
+- Validation:
+  ```bash
+  pnpm run test:offline
+  ```
+- Suggested commit:
+  ```text
+  docs: finalize week 5 maintenance log and sync roadmap
+  ```

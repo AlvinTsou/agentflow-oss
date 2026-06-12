@@ -22,7 +22,7 @@ import type { ReadinessReport } from "./src/workflow/readiness.js";
 const ALLOWED_REVIEW_PROVIDERS: ReadonlySet<Provider> = new Set([
   "codex", "claude", "gemini", "openrouter", "openai-compatible",
 ]);
-const KNOWN_RECIPES = ["mini", "sdd", "research", "release-readiness"] as const;
+const KNOWN_RECIPES = ["mini", "sdd", "research", "release-readiness", "pr-review"] as const;
 type KnownRecipe = (typeof KNOWN_RECIPES)[number];
 
 interface ParsedInitArgs {
