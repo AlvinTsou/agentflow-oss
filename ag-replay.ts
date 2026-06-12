@@ -35,6 +35,16 @@ interface RowAgg {
   endedAt?: string;
   passed: boolean;
   forced: boolean;
+  routeDetails: Array<{
+    phase: string;
+    attempt: number;
+    provider: string;
+    model?: string;
+    reason: string;
+    matchedRule?: string;
+    warnings?: string[];
+    policyProfile?: string;
+  }>;
 }
 
 function parseArgs(argv: string[]): { sprintDir: string } {
@@ -136,6 +146,7 @@ function aggregate(events: SprintEvent[]): {
         endedAt: undefined,
         passed: false,
         forced: false,
+        routeDetails: [],
       };
       row.startedAt = row.startedAt ?? ev.ts;
       byKey[key] = row;
@@ -151,6 +162,19 @@ function aggregate(events: SprintEvent[]): {
       row.costUsd += ev.costUsd ?? 0;
       totalTokens += ev.tokens ?? 0;
       totalCost += ev.costUsd ?? 0;
+
+      if (ev.route) {
+        row.routeDetails.push({
+          phase: ev.msg ?? "unknown",
+          attempt: ev.attempt ?? 1,
+          provider: ev.route.provider,
+          model: ev.route.model,
+          reason: ev.route.reason,
+          matchedRule: ev.route.matchedRule,
+          warnings: ev.route.warnings,
+          policyProfile: ev.route.policyProfile,
+        });
+      }
     }
     if (ev.type === "step-passed" || ev.type === "iteration-passed") {
       const key = rowKey(ev.step!, ev.iteration);
@@ -197,16 +221,59 @@ function render(agg: ReturnType<typeof aggregate>): string {
   lines.push(``);
   lines.push(`## Steps`);
   lines.push(``);
-  lines.push(`| Step / Iter | Status | Score | Att | Tokens | Cost | Elapsed |`);
-  lines.push(`|---|---|---:|---:|---:|---:|---:|`);
+  lines.push(`| Step / Iter | Status | Score | Att | Tokens | Cost | Provider(s) | Elapsed |`);
+  lines.push(`|---|---|---:|---:|---:|---:|---|---:|`);
   for (const row of agg.rows) {
     const name = row.iteration ? `${row.step}/${row.iteration}` : row.step;
     const status = row.passed ? (row.forced ? "force-pass" : "passed") : (row.endedAt ? "FAILED" : "running");
+    const uniqProviders = Array.from(new Set(row.routeDetails.map((rd) => rd.provider)));
+    const providersStr = uniqProviders.length > 0 ? uniqProviders.join(", ") : "—";
     lines.push(
-      `| ${name} | ${status} | ${row.finalScore} | ${row.attempts} | ${row.tokens.toLocaleString()} | ${fmtCost(row.costUsd)} | ${fmtElapsed(row.startedAt, row.endedAt)} |`,
+      `| ${name} | ${status} | ${row.finalScore} | ${row.attempts} | ${row.tokens.toLocaleString()} | ${fmtCost(row.costUsd)} | ${providersStr} | ${fmtElapsed(row.startedAt, row.endedAt)} |`,
     );
   }
   lines.push(``);
+
+  const hasRoutes = agg.rows.some((r) => r.routeDetails && r.routeDetails.length > 0);
+  if (hasRoutes) {
+    lines.push(`## Route Audit`);
+    lines.push(``);
+    lines.push(`| Step / Iter | Phase | Attempt | Provider | Model | Reason | Profile |`);
+    lines.push(`|---|---|---:|---|---|---|---|`);
+    for (const row of agg.rows) {
+      const name = row.iteration ? `${row.step}/${row.iteration}` : row.step;
+      for (const rd of row.routeDetails) {
+        const modelStr = rd.model ?? "—";
+        const ruleStr = rd.matchedRule ? `${rd.reason} (${rd.matchedRule})` : rd.reason;
+        const profileStr = rd.policyProfile ?? "—";
+        const warnSuffix = rd.warnings && rd.warnings.length > 0 ? " ⚠️" : "";
+        lines.push(
+          `| ${name} | ${rd.phase} | ${rd.attempt} | ${rd.provider} | ${modelStr} | ${ruleStr}${warnSuffix} | ${profileStr} |`,
+        );
+      }
+    }
+    lines.push(``);
+
+    const allWarnings: string[] = [];
+    for (const row of agg.rows) {
+      const name = row.iteration ? `${row.step}/${row.iteration}` : row.step;
+      for (const rd of row.routeDetails) {
+        if (rd.warnings) {
+          for (const w of rd.warnings) {
+            allWarnings.push(`- **${name}** (${rd.phase}): ${w}`);
+          }
+        }
+      }
+    }
+    if (allWarnings.length > 0) {
+      lines.push(`### Route Warnings`);
+      lines.push(``);
+      for (const w of allWarnings) {
+        lines.push(w);
+      }
+      lines.push(``);
+    }
+  }
   lines.push(`## Totals`);
   lines.push(``);
   lines.push(`- Tokens: ${agg.totalTokens.toLocaleString()}`);
