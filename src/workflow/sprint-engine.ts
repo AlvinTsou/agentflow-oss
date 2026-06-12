@@ -20,6 +20,7 @@ import { writeArtifact, type Artifact, type ArtifactFrontmatter } from "../artif
 import { loadConfig, resolveEffectiveConfig, type EffectiveConfig } from "./config-loader.js";
 import { checkRequestChangesBlock, ingestFeedback } from "../feedback/ingest.js";
 import { runMiddlemanStep } from "../middleman/middleman.js";
+import type { MiddlemanPolicy } from "../middleman/policy.js";
 import { newMeter, recordCall, type UsageMeter } from "../middleman/provider.js";
 import type {
   Recipe,
@@ -78,6 +79,7 @@ export function buildRunners(
   reviewOptions: ProviderRunOptions,
   fixOptions: ProviderRunOptions,
   override?: StepProviderOverride,
+  globalPolicy?: MiddlemanPolicy,
 ): {
   runners: {
     producer: (p: string) => ReturnType<typeof runMiddlemanStep>;
@@ -97,11 +99,11 @@ export function buildRunners(
   const reviewFallback: Provider | null = reviewFallbackFor(rev.provider);
   return {
     runners: {
-      producer: (p: string) => runMiddlemanStep(p, { ...prod.options, provider: prod.provider }),
-      reviewer: (p: string) => runMiddlemanStep(p, { ...rev.options, provider: rev.provider }),
-      fixer: (p: string) => runMiddlemanStep(p, { ...fix.options, provider: fix.provider }),
+      producer: (p: string) => runMiddlemanStep(p, { ...prod.options, provider: prod.provider, policy: { ...globalPolicy, ...prod.options.policy } }),
+      reviewer: (p: string) => runMiddlemanStep(p, { ...rev.options, provider: rev.provider, policy: { ...globalPolicy, ...rev.options.policy } }),
+      fixer: (p: string) => runMiddlemanStep(p, { ...fix.options, provider: fix.provider, policy: { ...globalPolicy, ...fix.options.policy } }),
       reviewFallback: reviewFallback
-        ? (p: string) => runMiddlemanStep(p, { ...reviewOptions, provider: reviewFallback })
+        ? (p: string) => runMiddlemanStep(p, { ...reviewOptions, provider: reviewFallback, policy: { ...globalPolicy, ...reviewOptions.policy } })
         : undefined,
     },
     resolved: {
@@ -481,6 +483,8 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
     const stepDefault = buildRunners(
       produceProvider, reviewProvider, fixProvider,
       produceOptions, reviewOptions, fixOptions,
+      undefined,
+      effectiveConfig.policy,
     );
     const runners = stepDefault.runners;
     const stepResolved = stepDefault.resolved;
@@ -580,6 +584,7 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
               produceProvider, reviewProvider, fixProvider,
               produceOptions, reviewOptions, fixOptions,
               iterOverride,
+              effectiveConfig.policy,
             )
           : stepDefault;
         const iterRunners = iterRunnersBundle.runners;

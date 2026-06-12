@@ -19,6 +19,7 @@ import { join } from "node:path";
 
 import type { Provider } from "../middleman/provider.js";
 import type { Recipe } from "../recipe/types.js";
+import type { MiddlemanPolicy } from "../middleman/policy.js";
 
 export type GateDefaultMode = "auto" | "human-in-the-loop";
 
@@ -58,6 +59,7 @@ export interface AgentFlowConfig {
   gate?: { defaultMode?: GateDefaultMode };
   steps?: Record<string, ConfigStep>;
   forEach?: Record<string, ConfigForEachStep>;
+  policy?: MiddlemanPolicy;
 }
 
 const KNOWN_PROVIDERS: ReadonlySet<Provider> = new Set([
@@ -246,7 +248,83 @@ export function validateConfig(raw: unknown, recipe: Recipe): AgentFlowConfig {
     result.forEach = outFe;
   }
 
+  if ("policy" in cfg) {
+    result.policy = validatePolicyConfig(cfg.policy);
+  }
+
   return result;
+}
+
+function validatePolicyConfig(raw: unknown): MiddlemanPolicy {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new ConfigError(`"policy" must be an object.`);
+  }
+  const policyCfg = raw as Record<string, unknown>;
+  const out: MiddlemanPolicy = {};
+
+  if ("profile" in policyCfg) {
+    const prof = policyCfg.profile;
+    if (prof !== "default" && prof !== "strict" && prof !== "off") {
+      throw new ConfigError(`"policy.profile" must be one of "default" | "strict" | "off".`);
+    }
+    out.profile = prof;
+  }
+
+  if ("redactSecrets" in policyCfg) {
+    if (typeof policyCfg.redactSecrets !== "boolean") {
+      throw new ConfigError(`"policy.redactSecrets" must be a boolean.`);
+    }
+    out.redactSecrets = policyCfg.redactSecrets;
+  }
+
+  if ("blockSecrets" in policyCfg) {
+    if (typeof policyCfg.blockSecrets !== "boolean") {
+      throw new ConfigError(`"policy.blockSecrets" must be a boolean.`);
+    }
+    out.blockSecrets = policyCfg.blockSecrets;
+  }
+
+  if ("maxEstimatedTokens" in policyCfg) {
+    if (typeof policyCfg.maxEstimatedTokens !== "number" || !Number.isFinite(policyCfg.maxEstimatedTokens)) {
+      throw new ConfigError(`"policy.maxEstimatedTokens" must be a number.`);
+    }
+    out.maxEstimatedTokens = policyCfg.maxEstimatedTokens;
+  }
+
+  if ("customRedactions" in policyCfg) {
+    const cr = policyCfg.customRedactions;
+    if (!Array.isArray(cr)) {
+      throw new ConfigError(`"policy.customRedactions" must be an array.`);
+    }
+    const outCr: Array<{ kind: string; pattern: string; replacement?: string }> = [];
+    for (let idx = 0; idx < cr.length; idx++) {
+      const item = cr[idx];
+      if (item === null || typeof item !== "object" || Array.isArray(item)) {
+        throw new ConfigError(`"policy.customRedactions[${idx}]" must be an object.`);
+      }
+      const crItem = item as Record<string, unknown>;
+      if (!("kind" in crItem) || typeof crItem.kind !== "string") {
+        throw new ConfigError(`"policy.customRedactions[${idx}].kind" must be a string.`);
+      }
+      if (!("pattern" in crItem) || typeof crItem.pattern !== "string") {
+        throw new ConfigError(`"policy.customRedactions[${idx}].pattern" must be a string.`);
+      }
+      const validItem: { kind: string; pattern: string; replacement?: string } = {
+        kind: crItem.kind,
+        pattern: crItem.pattern,
+      };
+      if ("replacement" in crItem) {
+        if (typeof crItem.replacement !== "string") {
+          throw new ConfigError(`"policy.customRedactions[${idx}].replacement" must be a string.`);
+        }
+        validItem.replacement = crItem.replacement;
+      }
+      outCr.push(validItem);
+    }
+    out.customRedactions = outCr;
+  }
+
+  return out;
 }
 
 function validateStepConfig(stepName: string, raw: Record<string, unknown>): ConfigStep {
@@ -383,6 +461,7 @@ export interface EffectiveConfig {
   gateDefaultMode: GateDefaultMode;
   steps: Record<string, EffectiveStep>;
   forEach: Record<string, ConfigForEachStep>;
+  policy?: MiddlemanPolicy;
 }
 
 /**
@@ -418,5 +497,6 @@ export function resolveEffectiveConfig(
     gateDefaultMode,
     steps,
     forEach: config?.forEach ?? {},
+    ...(config?.policy !== undefined ? { policy: config.policy } : {}),
   };
 }

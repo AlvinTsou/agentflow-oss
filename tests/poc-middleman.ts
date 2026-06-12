@@ -461,12 +461,48 @@ async function main() {
   await assertReasoningEffortOptionBehavior();
   await assertCustomProviderCapabilities();
   assertCustomRedactions();
+  assertConfigLoaderParsesPolicy();
 
   console.log(`\n[result] failures=${failures}`);
   process.exit(failures === 0 ? 0 : 1);
 }
 
+import { validateConfig } from "../src/workflow/config-loader.js";
+import type { Recipe } from "../src/recipe/types.js";
+
+function assertConfigLoaderParsesPolicy() {
+  console.log("[test O] config loader parses policy and custom redactions");
+  const mockRecipe: Recipe = {
+    name: "dummy-recipe",
+    steps: [{ name: "step-one", intent: "synthetic" }]
+  } as any;
+
+  const validJson = {
+    recipe: "dummy-recipe",
+    policy: {
+      profile: "strict",
+      redactSecrets: false,
+      blockSecrets: true,
+      maxEstimatedTokens: 5000,
+      customRedactions: [
+        { kind: "custom-token", pattern: "MY_SECRET_TOKEN_[0-9]{4}", replacement: "[REDACTED_TOKEN]" }
+      ]
+    }
+  };
+
+  const parsed = validateConfig(validJson, mockRecipe);
+  assert(parsed.policy !== undefined, "policy exists on parsed config");
+  assert(parsed.policy?.profile === "strict", "policy profile is strict");
+  assert(parsed.policy?.redactSecrets === false, "policy redactSecrets is false");
+  assert(parsed.policy?.blockSecrets === true, "policy blockSecrets is true");
+  assert(parsed.policy?.maxEstimatedTokens === 5000, "policy maxEstimatedTokens is 5000");
+  assert(parsed.policy?.customRedactions !== undefined, "customRedactions exists");
+  assert(parsed.policy?.customRedactions?.[0]?.kind === "custom-token", "customRedactions kind matches");
+  assert(parsed.policy?.customRedactions?.[0]?.pattern === "MY_SECRET_TOKEN_[0-9]{4}", "customRedactions pattern matches");
+  assert(parsed.policy?.customRedactions?.[0]?.replacement === "[REDACTED_TOKEN]", "customRedactions replacement matches");
+}
+
 main().catch((err) => {
   console.error("[poc-middleman] fatal:", err);
-  process.exit(2);
+  process.exit(1);
 });
