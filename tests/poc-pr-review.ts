@@ -7,7 +7,7 @@
  */
 import assert from "node:assert/strict";
 import { getRecipe } from "../src/recipe/registry.js";
-import type { Recipe, StepDef } from "../src/recipe/types.js";
+import type { StepDef } from "../src/recipe/types.js";
 import { runSprint } from "../src/workflow/sprint-engine.js";
 import { mkdtempSync, rmSync, writeFileSync, cpSync, readFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";

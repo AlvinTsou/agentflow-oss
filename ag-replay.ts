@@ -22,6 +22,14 @@ interface SprintEvent {
   tokens?: number;
   costUsd?: number;
   msg?: string;
+  route?: {
+    provider: string;
+    model?: string;
+    reason: string;
+    matchedRule?: string;
+    warnings?: string[];
+    policyProfile?: string;
+  };
 }
 
 interface RowAgg {
