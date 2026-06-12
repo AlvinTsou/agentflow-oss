@@ -2,11 +2,15 @@
 
 This document consolidates the weekly active maintenance plans for `agentflow-oss` and tracks the current implementation status.
 
-## Current Verification Status (As of 2026-06-07)
+## Current Verification Status (As of 2026-06-12)
 
-- **Week 1 Plan**: **Completed**. All tasks including the OpenAI-compatible gateway smoke test CLI, basic SDD sprint walkthrough documentation, provider capability registry, capability validation, and route audit security profiles have been implemented and verified.
-- **Week 2 Plan**: **Partially Completed**. Day 1 to Day 3 tasks (sync roadmap, mini recipe quickstart guide, design and implementation of the release-readiness recipe workflow) are completed. Day 4 to Day 7 tasks (offline tests, custom redaction patterns, custom redaction tests, sync docs/roadmap/release log) have been carried over to the Week 3 plan.
-- **Week 3 Plan**: **In Progress**. The week 3 plan has been created to harden the release-readiness recipe with offline tests and fixtures, implement custom secret redaction patterns, write comprehensive test cases, and prepare release candidate notes for `v0.2.0`.
+- **GitHub Pages**: **Live**. Repository Pages is enabled, the configured source is `main:/docs`, the Pages API reports `built`, HTTPS is enforced, and `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
+- **Latest GitHub Actions Check**: **Green**. Recent `CI` and `pages-build-deployment` runs on `main` completed successfully.
+- **Week 1 Plan**: **Completed**. OpenAI-compatible gateway smoke test CLI, SDD walkthrough documentation, provider capability registry, capability validation, route metadata, security profiles, and route audit logging are implemented and covered by tests.
+- **Week 2 / Week 3 Work**: **Completed**. Release-readiness recipe integration, offline fixtures, custom redaction policy behavior, documentation, and roadmap synchronization are represented in the repo maintenance logs.
+- **Week 4 Plan**: **Completed**. PR review recipe proposal, release-readiness hardening, route audit replay formatting, status CLI layout improvements, and custom redaction config-loader integration are complete.
+- **Week 5 Plan**: **Completed**. The `pr-review` recipe is defined, exposed through init, covered by offline tests and fixtures, and wired to git diff context ingestion.
+- **Next Maintenance Focus**: **Week 6**. Keep Pages accurate after the multilingual launch, add a security review recipe proposal, tighten PR review docs, and maintain green offline verification.
 
 ---
 
@@ -1168,3 +1172,181 @@ The objective is to implement and verify the `pr-review` workflow recipe, incorp
   ```text
   docs: finalize week 5 maintenance log and sync roadmap
   ```
+
+---
+
+## Week 6 Active Maintenance Plan
+
+This plan outlines the next maintenance cycle for `agentflow-oss`.
+
+The objective is to keep the public GitHub Pages site accurate after the multilingual launch, turn the next recipe idea into a scoped proposal, and harden the newly implemented `pr-review` workflow documentation without starting a large unvalidated feature.
+
+### Current Baseline
+
+- Repository: https://github.com/AlvinTsou/agentflow-oss
+- Public site: https://alvintsou.github.io/agentflow-oss/
+- Pages source: `main:/docs`
+- Pages status: `built`
+- Latest checked public response: `HTTP/2 200`
+- Current completed recipe set: `mini`, `research`, `sdd`, `release-readiness`, `pr-review`
+- Current roadmap state: v1.1, v1.2, and v1.3 maintenance milestones are marked completed.
+
+### Week Objective
+
+- **Pages Accuracy Pass**: Confirm localized Pages content still matches current roadmap and shipped features.
+- **PR Review Documentation**: Add practical docs for initializing, running, and interpreting `pr-review` output.
+- **Security Review Recipe Proposal**: Scope the next recipe without implementing it yet.
+- **Route Audit Examples**: Add a public-safe example showing route audit replay output.
+- **Verification Discipline**: Keep `test:offline`, `test:secret-scan`, and GitHub Actions green.
+
+### Daily Plan
+
+#### Day 1 - Pages Content Audit
+- Purpose: ensure the public site describes the real project state.
+- Tasks:
+  - Review `docs/en/`, `docs/zh-tw/`, `docs/zh-cn/`, `docs/ja/`, and `docs/ko/` landing pages.
+  - Update shipped feature lists to include `pr-review`, git diff ingestion, and route audit replay formatting where appropriate.
+  - Confirm navigation still points to the correct repo docs and roadmap.
+- Validation:
+  ```bash
+  pnpm run test:secret-scan
+  git diff --check
+  curl -I https://alvintsou.github.io/agentflow-oss/
+  ```
+- Suggested commit:
+  ```text
+  docs: sync pages content with current roadmap
+  ```
+
+#### Day 2 - PR Review Usage Guide
+- Purpose: make the new recipe usable without reading tests.
+- Tasks:
+  - Add `docs/recipes/pr-review.md`.
+  - Document `pnpm ag init pr-review`, expected sprint artifacts, git diff context behavior, and review output categories.
+  - Include one sanitized example command sequence.
+- Validation:
+  ```bash
+  pnpm run test:secret-scan
+  git diff --check
+  ```
+- Suggested commit:
+  ```text
+  docs: add pr-review recipe usage guide
+  ```
+
+#### Day 3 - Route Audit Replay Example
+- Purpose: show maintainers how to inspect provider routing decisions.
+- Tasks:
+  - Add or update a docs example showing `ag replay` route audit output.
+  - Explain provider, model, route reason, matched rule, warnings, and security profile fields.
+  - Keep the example public-safe and avoid real provider request payloads.
+- Validation:
+  ```bash
+  pnpm run test:secret-scan
+  git diff --check
+  ```
+- Suggested commit:
+  ```text
+  docs: add route audit replay example
+  ```
+
+#### Day 4 - Security Review Recipe Proposal
+- Purpose: scope the next recipe before implementation.
+- Tasks:
+  - Add `docs/proposals/security-review-recipe.md`.
+  - Define proposed steps for dependency risk, secret exposure, auth boundary review, and unsafe pattern review.
+  - Specify offline-test requirements and constraints before any code work starts.
+- Validation:
+  ```bash
+  pnpm run test:secret-scan
+  git diff --check
+  ```
+- Suggested commit:
+  ```text
+  docs: propose security review recipe
+  ```
+
+#### Day 5 - Roadmap and Issue Hygiene
+- Purpose: keep public planning aligned with completed and next work.
+- Tasks:
+  - Update `ROADMAP.md` to mark `security review recipe` as proposed, not implemented.
+  - Keep `Web UI` and team features in the future section.
+  - Create or update scoped issues for Pages polish, PR review docs, route audit examples, and security review recipe design.
+- Validation:
+  ```bash
+  pnpm run test:secret-scan
+  gh run list --repo AlvinTsou/agentflow-oss --limit 5
+  git diff --check
+  ```
+- Suggested commit:
+  ```text
+  docs: sync roadmap for week 6 planning
+  ```
+
+#### Day 6 - Offline Verification Sweep
+- Purpose: catch regressions before the weekly log.
+- Tasks:
+  - Run the offline suite.
+  - Run the secret scanner.
+  - Inspect `git status --short --branch`.
+  - Fix any docs or fixture drift found during validation.
+- Validation:
+  ```bash
+  pnpm run test:offline
+  pnpm run test:secret-scan
+  git status --short --branch
+  ```
+- Suggested commit:
+  ```text
+  test: verify week 6 maintenance docs
+  ```
+
+#### Day 7 - Finalize Week 6 Log
+- Purpose: close the cycle with a durable maintenance record.
+- Tasks:
+  - Add `docs/maintenance-log/2026-06-week-6.md`.
+  - Summarize Pages verification, PR review docs, route audit examples, security review proposal, and validation results.
+  - Confirm GitHub Pages remains live after push.
+- Validation:
+  ```bash
+  pnpm run test:offline
+  pnpm run test:secret-scan
+  git diff --check
+  curl -I https://alvintsou.github.io/agentflow-oss/
+  ```
+- Suggested commit:
+  ```text
+  docs: finalize week 6 maintenance log
+  ```
+
+### Suggested Issue Backlog
+
+Keep these issues open or create them if missing:
+
+1. `docs: sync multilingual pages with current roadmap`
+2. `docs: add pr-review recipe usage guide`
+3. `docs: add route audit replay example`
+4. `docs: propose security review recipe`
+5. `good first issue: add one more sanitized replay fixture`
+
+Recommended labels:
+
+- `documentation`
+- `recipe`
+- `good first issue`
+- `roadmap`
+- `security`
+
+### Weekly Success Criteria
+
+The week is successful when:
+
+- GitHub Pages still serves `HTTP/2 200`.
+- Pages source remains `main:/docs`.
+- Localized public pages match the current shipped feature set.
+- `pr-review` has a practical user guide.
+- Route audit replay has a sanitized example.
+- Security review remains a scoped proposal until tests and fixtures are planned.
+- `pnpm run test:offline` passes.
+- `pnpm run test:secret-scan` passes.
+- Recent GitHub Actions runs remain green.
