@@ -47,6 +47,16 @@ This minor release introduces maintainer utility workflows and policy customizat
 - **Release readiness recipe:** A built-in workflow recipe that audits a repository for release readiness: changelog completeness, version bumps, dependency freshness, and documentation coverage.
 - **Custom secret redaction profiles:** Support for developer-defined custom regex patterns inside middleman policies to scrub proprietary credentials or keys.
 
+## v1.2 -- Maintenance & CLI Usability (Completed)
+
+This release focuses on hardening existing recipes, improving CLI readability, and integrating policy configuration.
+
+- **PR review recipe proposal:** Proposed structured review steps and rubrics for pull request code reviews.
+- **Release-readiness hardening:** Hardened edge cases in release-readiness recipe runner.
+- **Route audit replay formatting:** Enhanced replay formatting to print route decisions, warnings, matched rules, and policy profiles.
+- **CLI layout improvements:** Aligned labels and improved formatting of status reports for terminal readability.
+- **Custom redaction config integration:** Dynamically load and validate policy profiles and custom redactions from `agentflow.config.json`.
+
 ## Planned -- Post-v1.0
 
 These features are designed and scoped but not yet implemented.
