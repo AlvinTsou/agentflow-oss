@@ -9,9 +9,13 @@ import assert from "node:assert/strict";
 import { getRecipe } from "../src/recipe/registry.js";
 import type { Recipe, StepDef } from "../src/recipe/types.js";
 import { runSprint } from "../src/workflow/sprint-engine.js";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, cpSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import { mock } from "node:test";
 import { Middleman } from "../src/middleman/middleman.js";
 import type { MiddlemanRequest } from "../src/middleman/protocol.js";
@@ -153,6 +157,9 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
   const tmp = mkdtempSync(join(tmpdir(), "ag-pr-test-clean-"));
   try {
     const sprintId = `pr-test-clean-${Date.now()}`;
+    // Copy clean-pr fixture
+    cpSync(join(__dirname, "fixtures/pr-review/clean-pr"), tmp, { recursive: true });
+
     // Create necessary initial files
     writeFileSync(join(tmp, "INPUT.md"), "# PR Brief\n\nTest clean PR review.", "utf-8");
     writeFileSync(
@@ -172,6 +179,10 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
     assert.equal(result.perStep[0]?.step, "analyze-diff");
     assert.equal(result.perStep[1]?.step, "review-code");
     assert.equal(result.perStep[2]?.step, "generate-feedback");
+
+    // Verify workspace file exists after copy
+    const indexContent = readFileSync(join(tmp, "src/index.ts"), "utf-8");
+    assert.match(indexContent, /export function add/);
   } finally {
     try {
       rmSync(tmp, { recursive: true, force: true });
@@ -185,6 +196,9 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
   const tmp = mkdtempSync(join(tmpdir(), "ag-pr-test-buggy-"));
   try {
     const sprintId = `pr-test-buggy-${Date.now()}`;
+    // Copy buggy-pr fixture
+    cpSync(join(__dirname, "fixtures/pr-review/buggy-pr"), tmp, { recursive: true });
+
     // Create necessary initial files
     writeFileSync(join(tmp, "INPUT.md"), "# PR Brief\n\nTest buggy PR review.", "utf-8");
     writeFileSync(
@@ -201,6 +215,10 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
 
     assert.equal(result.passed, true);
     assert.equal(result.perStep.length, 3);
+
+    // Verify workspace file exists after copy
+    const indexContent = readFileSync(join(tmp, "src/index.ts"), "utf-8");
+    assert.match(indexContent, /setInterval/);
   } finally {
     try {
       rmSync(tmp, { recursive: true, force: true });
