@@ -22,6 +22,12 @@ import type { SprintSummary } from "./src/workflow/sprint-engine.js";
 
 export type StatusPhase = "initialized" | "in-progress" | "failed" | "completed";
 
+export interface ProviderSummary {
+  tokens: number;
+  costUsd: number;
+  calls: number;
+}
+
 export interface StatusReport {
   sprintDir: string;
   state: SprintState;
@@ -34,6 +40,7 @@ export interface StatusReport {
   totalCostUsd: number;
   /** Latest tag in the sprint repo, or undefined when the dir is not a git repo. */
   latestTag?: string;
+  byProvider: Record<string, ProviderSummary>;
 }
 
 export function parseStatusArgs(argv: string[]): { sprintDir: string } {
@@ -88,15 +95,28 @@ function findCurrentStep(events: SprintEvent[]): string | undefined {
   return undefined;
 }
 
-function sumRunning(events: SprintEvent[]): { tokens: number; cost: number } {
+function sumRunning(events: SprintEvent[]): {
+  tokens: number;
+  cost: number;
+  byProvider: Record<string, ProviderSummary>;
+} {
   let tokens = 0;
   let cost = 0;
+  const byProvider: Record<string, ProviderSummary> = {};
   for (const ev of events) {
     if (ev.type !== "phase") continue;
     tokens += ev.tokens ?? 0;
     cost += ev.costUsd ?? 0;
+
+    const provider = ev.route?.provider ?? "unknown";
+    if (!byProvider[provider]) {
+      byProvider[provider] = { tokens: 0, costUsd: 0, calls: 0 };
+    }
+    byProvider[provider].tokens += ev.tokens ?? 0;
+    byProvider[provider].costUsd += ev.costUsd ?? 0;
+    byProvider[provider].calls += 1;
   }
-  return { tokens, cost };
+  return { tokens, cost, byProvider };
 }
 
 function readLatestTag(sprintDir: string): string | undefined {
@@ -132,6 +152,18 @@ export function buildReport(sprintDir: string): StatusReport {
   const phase = derivePhase(state, summary);
   const currentStepName = phase === "in-progress" ? findCurrentStep(events) : undefined;
   const running = summary ? null : sumRunning(events);
+
+  const byProvider: Record<string, ProviderSummary> = {};
+  if (summary?.byProvider) {
+    for (const [k, v] of Object.entries(summary.byProvider)) {
+      if (v) {
+        byProvider[k] = { tokens: v.tokens, costUsd: v.costUsd, calls: v.calls };
+      }
+    }
+  } else if (running) {
+    Object.assign(byProvider, running.byProvider);
+  }
+
   return {
     sprintDir,
     state,
@@ -141,6 +173,7 @@ export function buildReport(sprintDir: string): StatusReport {
     totalTokens: summary?.totalTokens ?? running?.tokens ?? 0,
     totalCostUsd: summary?.totalCostUsd ?? running?.cost ?? 0,
     latestTag: readLatestTag(sprintDir),
+    byProvider,
   };
 }
 
@@ -150,16 +183,18 @@ function fmtCost(n: number): string {
 
 export function render(rep: StatusReport): string {
   const lines: string[] = [];
+  const padLabel = (label: string) => label.padEnd(11, " ");
+
   lines.push(`# Sprint status`);
   lines.push(``);
-  lines.push(`- Sprint:   ${rep.state.sprintId}`);
-  lines.push(`- Recipe:   ${rep.state.recipeName}`);
-  lines.push(`- Phase:    ${rep.phase}`);
-  lines.push(`- Started:  ${rep.state.startedAt}`);
+  lines.push(`- ${padLabel("Sprint:")} ${rep.state.sprintId}`);
+  lines.push(`- ${padLabel("Recipe:")} ${rep.state.recipeName}`);
+  lines.push(`- ${padLabel("Phase:")} ${rep.phase}`);
+  lines.push(`- ${padLabel("Started:")} ${rep.state.startedAt}`);
   if (rep.phase === "completed" && rep.summary?.completedAt) {
-    lines.push(`- Ended:    ${rep.summary.completedAt}`);
+    lines.push(`- ${padLabel("Ended:")} ${rep.summary.completedAt}`);
   } else {
-    lines.push(`- Last ev:  ${rep.state.lastEventTs}`);
+    lines.push(`- ${padLabel("Last ev:")} ${rep.state.lastEventTs}`);
   }
   if (rep.phase === "completed" && rep.summary) {
     const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -168,15 +203,15 @@ export function render(rep: StatusReport): string {
       rep.summary.readiness === "blocked"
         ? ` (${rep.summary.blockingCount} blocking carry-over${rep.summary.blockingCount === 1 ? "" : "s"})`
         : "";
-    lines.push(`- Run:      Completed`);
-    lines.push(`- Readiness: ${readinessLabel}${detail}`);
+    lines.push(`- ${padLabel("Run:")} Completed`);
+    lines.push(`- ${padLabel("Readiness:")} ${readinessLabel}${detail}`);
   }
   if (rep.currentStepName) {
-    lines.push(`- Step:     #${rep.state.currentStepIdx} ${rep.currentStepName}`);
+    lines.push(`- ${padLabel("Step:")} #${rep.state.currentStepIdx} ${rep.currentStepName}`);
   } else if (rep.phase === "initialized") {
-    lines.push(`- Step:     -  (not yet started)`);
+    lines.push(`- ${padLabel("Step:")} -  (not yet started)`);
   }
-  if (rep.latestTag) lines.push(`- Tag:      ${rep.latestTag}`);
+  if (rep.latestTag) lines.push(`- ${padLabel("Tag:")} ${rep.latestTag}`);
   lines.push(``);
 
   if (rep.summary && rep.summary.perStep.length > 0) {
@@ -199,12 +234,13 @@ export function render(rep: StatusReport): string {
 
   if (rep.phase === "failed" && rep.state.failedAt) {
     const f = rep.state.failedAt;
+    const padFailLabel = (label: string) => label.padEnd(8, " ");
     lines.push(`## Failure`);
     lines.push(``);
-    lines.push(`- Step:    ${f.step}${f.iteration ? `/${f.iteration}` : ""}`);
-    lines.push(`- Reason:  ${f.reason ?? "?"}`);
-    lines.push(`- Score:   ${f.score} after ${f.attempts} attempt(s)`);
-    lines.push(`- When:    ${f.ts}`);
+    lines.push(`- ${padFailLabel("Step:")} ${f.step}${f.iteration ? `/${f.iteration}` : ""}`);
+    lines.push(`- ${padFailLabel("Reason:")} ${f.reason ?? "?"}`);
+    lines.push(`- ${padFailLabel("Score:")} ${f.score} after ${f.attempts} attempt(s)`);
+    lines.push(`- ${padFailLabel("When:")} ${f.ts}`);
     if (f.errorMessage) {
       const firstLine = f.errorMessage.split("\n")[0]!;
       lines.push(`- Error:   ${firstLine}`);
@@ -216,14 +252,15 @@ export function render(rep: StatusReport): string {
 
   lines.push(`## Cost`);
   lines.push(``);
-  lines.push(`- Tokens: ${rep.totalTokens.toLocaleString()}`);
-  lines.push(`- Cost:   ${fmtCost(rep.totalCostUsd)}`);
+  const padCostLabel = (label: string) => label.padEnd(8, " ");
+  lines.push(`- ${padCostLabel("Tokens:")} ${rep.totalTokens.toLocaleString()}`);
+  lines.push(`- ${padCostLabel("Cost:")} ${fmtCost(rep.totalCostUsd)}`);
 
-  if (rep.summary?.byProvider) {
+  if (Object.keys(rep.byProvider).length > 0) {
     lines.push(``);
     lines.push(`## By provider`);
     lines.push(``);
-    for (const [name, m] of Object.entries(rep.summary.byProvider)) {
+    for (const [name, m] of Object.entries(rep.byProvider)) {
       lines.push(
         `- ${name}: ${m.tokens.toLocaleString()} tokens, ${fmtCost(m.costUsd)} over ${m.calls} call(s)`,
       );
