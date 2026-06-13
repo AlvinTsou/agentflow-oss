@@ -187,11 +187,11 @@
       <h2 class="section-title">プロジェクトの進捗</h2>
       <div class="card progress-container">
         <div class="progress-header">
-          <span class="badge badge-in-progress">Week 3 開発中</span>
-          <span class="progress-date">ステータス更新日：2026-06-10</span>
+          <span class="badge badge-in-progress">Week 6 メンテナンス中</span>
+          <span class="progress-date">ステータス更新日：2026-06-14</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          公開 repository の OSS baseline は整備済みです。CI、issue templates、security policy、contribution docs、CLI reference、architecture docs、active roadmap が用意されています。Core engine は sprint recipes の実行、artifacts と state の保存、quality loops、resume、readiness signals をサポートしています。Middleman layer は provider capability validation、route metadata の記録、provider calls 前の security profiles を提供します。
+          公開 repository の OSS baseline は整備済みです。CI、issue templates、security policy、contribution docs、CLI reference、architecture docs、active roadmap が用意されています。Core engine は sprint recipes の実行、artifacts と state の保存、quality loops、resume、readiness signals をサポートしています。Middleman layer は provider capability validation、route metadata、security profiles、再生可能な route audit output を提供します。現在の完成済み recipe set は <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code>、<code>pr-review</code> です。
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -215,7 +215,7 @@
           <li class="progress-item current">
             <div>
               <h3>リリース準備機能の強化</h3>
-              <p>現在、release-readiness テスト、fixture カバレッジ、カスタム秘密情報マスク機能の実装、および v0.2.0 リリースノートの下書き作成に注力しています。</p>
+              <p>現在は Pages accuracy、実用的な <code>pr-review</code> ドキュメント、route audit examples、scoped security review recipe proposal に注力しています。</p>
             </div>
           </li>
         </ul>
@@ -255,8 +255,8 @@
             <li class="feature-item">
               <span class="feature-marker"></span>
               <div class="feature-info">
-                <h4>実行ステートと準備度</h4>
-                <p>全ログ、生成コード、消費トークンの記録。マージ前にプロジェクト全体の準備度シグナルを生成。</p>
+                <h4>Recipe Workflows と Review Automation</h4>
+                <p>release-readiness と PR review recipes を提供し、構造化 review context 用の git diff ingestion をサポートします。</p>
               </div>
             </li>
           </ul>
@@ -268,22 +268,22 @@
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>Release Readiness 監査テスト</h4>
-                <p>パッケージやドキュメントの Fixture データを活用した、オフラインでの安全なリポジトリ確認テスト。</p>
+                <h4>Security Review Recipe Proposal</h4>
+                <p>将来の security-focused recipe について、実装前に scope と offline fixtures を設計します。</p>
               </div>
             </li>
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>カスタム秘密情報マスク</h4>
-                <p>正規表現を設定ファイルに記述し、社外に送信されるリクエスト内の重要トークンをマスク処理。</p>
+                <h4>公開ドキュメントの更新</h4>
+                <p>multilingual Pages、recipe guides、route audit examples、maintenance logs を実装状況に合わせます。</p>
               </div>
             </li>
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>呼び出し履歴のリプレイ出力</h4>
-                <p>Middleman が行ったルーティングの決定やコールログを、見やすい形式でターミナルに出力する監査機能。</p>
+                <h4>追加の Sanitized Replay Fixtures</h4>
+                <p>public-safe な route audit replay examples を増やし、maintainer verification を追跡しやすくします。</p>
               </div>
             </li>
             <div class="feature-item">
@@ -309,7 +309,7 @@
       </div>
       <a href="https://github.com/sponsors/safishamsi" class="footer-sponsor">☕ 開発者を支援する</a>
       <p>&copy; 2026 agentflow-oss. Apache-2.0 ライセンスのもとでオープンソースとして公開されています。</p>
-      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-10</p>
+      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-14</p>
     </div>
   </footer>
 

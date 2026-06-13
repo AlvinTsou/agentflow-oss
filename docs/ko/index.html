@@ -187,11 +187,11 @@
       <h2 class="section-title">프로젝트 진행 상황</h2>
       <div class="card progress-container">
         <div class="progress-header">
-          <span class="badge badge-in-progress">Week 3 활발히 개발 중</span>
-          <span class="progress-date">상태 업데이트: 2026-06-10</span>
+          <span class="badge badge-in-progress">Week 6 유지보수 진행 중</span>
+          <span class="progress-date">상태 업데이트: 2026-06-14</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          공개 repository 의 OSS baseline 은 준비되어 있습니다. CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, active roadmap 이 갖추어졌습니다. Core engine 은 sprint recipes 실행, artifacts 와 state 저장, quality loops, resume, readiness signals 를 지원합니다. Middleman layer 는 provider capability validation, route metadata 기록, provider calls 전 security profiles 적용을 제공합니다.
+          공개 repository 의 OSS baseline 은 준비되어 있습니다. CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, active roadmap 이 갖추어졌습니다. Core engine 은 sprint recipes 실행, artifacts 와 state 저장, quality loops, resume, readiness signals 를 지원합니다. Middleman layer 는 provider capability validation, route metadata, security profiles, 재생 가능한 route audit output 을 제공합니다. 완료된 recipe set 은 <code>mini</code>, <code>research</code>, <code>sdd</code>, <code>release-readiness</code>, <code>pr-review</code> 입니다.
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -215,7 +215,7 @@
           <li class="progress-item current">
             <div>
               <h3>릴리즈 준비 기능 강화</h3>
-              <p>현재 작업 초점은 release-readiness 테스트, fixture 테스트 커버리지 확보, 사용자 정의 민감 데이터 마스킹 패턴 개발 및 v0.2.0 버전 출시 노트 준비입니다.</p>
+              <p>현재 초점은 Pages accuracy, 실용적인 <code>pr-review</code> 문서, route audit examples, scoped security review recipe proposal 입니다.</p>
             </div>
           </li>
         </ul>
@@ -255,8 +255,8 @@
             <li class="feature-item">
               <span class="feature-marker"></span>
               <div class="feature-info">
-                <h4>상태 영구 보존 및 준비도 보고</h4>
-                <p>전체 실행 로그, 산출물, 토큰 소비량을 보존하고, 코드 병합 전 준비도 보고서(Readiness) 작성.</p>
+                <h4>Recipe Workflows 및 Review Automation</h4>
+                <p>release-readiness 와 PR review recipes 를 제공하며, 구조화된 review context 를 위한 git diff ingestion 을 지원합니다.</p>
               </div>
             </li>
           </ul>
@@ -268,22 +268,22 @@
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>Release Readiness Fixture 테스트</h4>
-                <p>릴리즈 진단 과정의 안정성을 보장하기 위한 가상 패키지 및 문서 테스트 데이터 세트 제공.</p>
+                <h4>Security Review Recipe Proposal</h4>
+                <p>향후 security-focused recipe 를 구현하기 전 scope 와 offline fixtures 를 먼저 설계합니다.</p>
               </div>
             </li>
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>사용자 정의 민감 정보 마스킹</h4>
-                <p>agentflow.config.json에 독자적인 정규식을 등록해 외부 LLM 요청 전 개인정보 및 토큰 자동 마스킹.</p>
+                <h4>공개 문서 정렬</h4>
+                <p>multilingual Pages, recipe guides, route audit examples, maintenance logs 를 실제 구현 상태와 동기화합니다.</p>
               </div>
             </li>
             <div class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>라우트 호출 재생 도구</h4>
-                <p>Middleman의 라우팅 결정 사항 및 기록된 감사 로그를 가독성 높은 표 형식으로 터미널에 재생하는 도구.</p>
+                <h4>추가 Sanitized Replay Fixtures</h4>
+                <p>public-safe route audit replay examples 를 확장해 maintainer verification 을 추적하기 쉽게 만듭니다.</p>
               </div>
             </div>
             <div class="feature-item">
@@ -309,7 +309,7 @@
       </div>
       <a href="https://github.com/sponsors/safishamsi" class="footer-sponsor">☕ 창작자 후원하기</a>
       <p>&copy; 2026 agentflow-oss. Apache-2.0 라이선스에 따라 오픈소스로 제공됩니다.</p>
-      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-10</p>
+      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-14</p>
     </div>
   </footer>
 

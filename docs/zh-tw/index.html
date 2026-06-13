@@ -187,11 +187,11 @@
       <h2 class="section-title">專案進度</h2>
       <div class="card progress-container">
         <div class="progress-header">
-          <span class="badge badge-in-progress">Week 3 活躍開發中</span>
-          <span class="progress-date">進度更新時間：2026-06-10</span>
+          <span class="badge badge-in-progress">Week 6 活躍維護中</span>
+          <span class="progress-date">進度更新時間：2026-06-14</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          公開 repository 的 OSS baseline 已經到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 與 active roadmap 都已建立。Core engine 已能執行 sprint recipes、保存 artifacts 與 state、套用 quality loops、支援 resume，並產生 readiness signals。Middleman layer 已支援 provider capability validation、route metadata 記錄，以及 provider calls 前的 security profiles。
+          公開 repository 的 OSS baseline 已經到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 與 active roadmap 都已建立。Core engine 已能執行 sprint recipes、保存 artifacts 與 state、套用 quality loops、支援 resume，並產生 readiness signals。Middleman layer 已支援 provider capability validation、route metadata、security profiles，以及可回放的 route audit output。已完成 recipe set 包含 <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code> 與 <code>pr-review</code>。
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -215,7 +215,7 @@
           <li class="progress-item current">
             <div>
               <h3>Release-Readiness 強化</h3>
-              <p>目前工作重點是 release-readiness tests、fixture coverage、custom redaction patterns 以及準備 v0.2.0 版本發佈草稿。</p>
+              <p>目前工作重點是 Pages accuracy、實用的 <code>pr-review</code> 文件、route audit examples，以及 scoped security review recipe proposal。</p>
             </div>
           </li>
         </ul>
@@ -255,8 +255,8 @@
             <li class="feature-item">
               <span class="feature-marker"></span>
               <div class="feature-info">
-                <h4>狀態保存與 Readiness</h4>
-                <p>保存所有日誌、生成物與 token 費用，並在代碼提交至 production 前產出準備度訊號。</p>
+                <h4>Recipe Workflows 與 Review Automation</h4>
+                <p>已提供 release-readiness 與 PR review recipes，並支援 git diff ingestion 作為結構化 review context。</p>
               </div>
             </li>
           </ul>
@@ -268,22 +268,22 @@
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>Release Readiness 測試套件</h4>
-                <p>離線測試框架，藉由 package 與 docs fixture 確保發佈邏輯之正確性與安全性。</p>
+                <h4>Security Review Recipe Proposal</h4>
+                <p>先完成未來 security-focused recipe 的範圍設計與 offline fixture 規劃，再進入實作。</p>
               </div>
             </li>
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>自定義敏感詞脫敏</h4>
-                <p>允許專案在 agentflow.config.json 中定義正則表達式，在請求前對客製敏感詞與密鑰進行脫敏遮蔽。</p>
+                <h4>公開文件校準</h4>
+                <p>持續同步 multilingual Pages、recipe guides、route audit examples 與 maintenance logs。</p>
               </div>
             </div>
             <div class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>路由審查回放格式化</h4>
-                <p>支援以格式化終端版面或導出報表方式，回放 Middleman 的路由決策與調用歷史，方便團隊檢視。</p>
+                <h4>更多 Sanitized Replay Fixtures</h4>
+                <p>擴充 public-safe route audit replay 範例，讓 maintainer verification 更容易追蹤。</p>
               </div>
             </div>
             <div class="feature-item">
@@ -309,7 +309,7 @@
       </div>
       <a href="https://github.com/sponsors/safishamsi" class="footer-sponsor">☕ 支持創作者</a>
       <p>&copy; 2026 agentflow-oss. 採用 Apache-2.0 協議授權開源。</p>
-      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-10</p>
+      <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">Source: en homepage, 2026-06-14</p>
     </div>
   </footer>
 

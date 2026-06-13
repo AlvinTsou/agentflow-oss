@@ -71,9 +71,9 @@ These features are designed and scoped but not yet implemented.
 
 ### New Recipes
 
-- **Security review recipe.** A recipe that performs a structured security
-  review of a codebase, checking for common vulnerability patterns,
-  dependency audit results, and secret exposure.
+- **Security review recipe proposal.** A scoped proposal exists in
+  `docs/proposals/security-review-recipe.md`. Implementation is intentionally
+  pending recipe definition, offline fixtures, and validation coverage.
 
 ## Future
 
