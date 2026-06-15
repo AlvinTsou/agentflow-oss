@@ -16,7 +16,7 @@ pnpm ag <command> [...options]
 Initialize a new sprint skeleton without invoking any provider.
 
 - **Usage**: `pnpm ag init <recipe> [...options]`
-- **Supported Recipes**: `mini`, `sdd`, `research`, `release-readiness`, `pr-review`
+- **Supported Recipes**: `mini`, `sdd`, `research`, `release-readiness`, `pr-review`, `security-review`
 - **Options**:
   - `--input <file>`: Path to the input markdown file containing the problem brief or task description.
   - `--prefix <prefix>`: Prefix name for the generated sprint directory.
@@ -143,4 +143,4 @@ Run a pre-flight gateway smoke test to verify connectivity and credential validi
     ✗ Smoke test failed: Gateway returned status 502: Bad Gateway
     ```
 
-For a full walkthrough of how these commands interact in a real sprint, see [Feedback Commands Guide](examples/feedback-commands.md). For recipe-specific usage, see [PR Review Recipe](recipes/pr-review.md) and [Route Audit Replay Example](examples/route-audit-replay.md).
+For a full walkthrough of how these commands interact in a real sprint, see [Feedback Commands Guide](examples/feedback-commands.md). For recipe-specific usage, see [PR Review Recipe](recipes/pr-review.md), [Security Review Recipe](recipes/security-review.md), and [Route Audit Replay Example](examples/route-audit-replay.md).

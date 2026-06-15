@@ -1,0 +1,36 @@
+{
+  "name": "security-review",
+  "description": "3-step security-focused workflow recipe to review code changes for authentication, authorization, secrets, unsafe logging, and dependency risks.",
+  "steps": [
+    {
+      "name": "map-security-scope",
+      "description": "Inspect the diff and classify touched surfaces: auth, data access, dependencies, configuration, logging, file IO, network calls, or public API behavior. Produce a concise risk map with changed files and likely threat categories.",
+      "provider": "claude",
+      "producePrompt": "Inspect the git diff of the current changes:\n\n```diff\n{{GIT_DIFF}}\n```\n\nClassify the touched surfaces in the code changes, including: authentication, authorization/data access, dependencies, configuration, logging, file IO, network calls, or public API behavior. Produce a concise security risk map identifying changed files and their likely threat categories.",
+      "rubric": "Score the security risk map report 0-10.\n\nRubric (10 pts):\n  C1 [4] Correctly identifies security-relevant files and changed trust boundaries.\n  C2 [3] Classifies touched surfaces into appropriate categories (e.g. auth, data access, logging, config).\n  C3 [3] Flags likely threat categories for each modified file.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    },
+    {
+      "name": "audit-threats",
+      "description": "Review the changed code for access-control gaps, injection risks, insecure defaults, unsafe logging, missing validation, and dependency misuse. Emit findings with file references, severity, exploit preconditions, and suggested fixes.",
+      "provider": "claude",
+      "producePrompt": "Perform a security audit on the changed code from the git diff:\n\n```diff\n{{GIT_DIFF}}\n```\n\nInspect the code for access-control gaps, injection risks (SQL, command, HTML, etc.), insecure defaults, unsafe logging of sensitive values, missing input validation, and dependency misuse. Output a detailed security audit findings report. For each finding, provide file references, severity (e.g. high, medium, low), exploit preconditions, and suggested fixes.",
+      "rubric": "Score the security audit findings report 0-10.\n\nRubric (10 pts):\n  C1 [4] Flags high-risk areas (like unsafe logging, access control gaps) without overstating unproven vulnerabilities.\n  C2 [3] Provides exact file references and classifies findings by severity.\n  C3 [3] Suggests actionable fixes and outlines exploit preconditions.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    },
+    {
+      "name": "generate-security-verdict",
+      "description": "Aggregate findings into PASS, PASS WITH FOLLOW-UP, or BLOCK. Separate mandatory fixes from hardening recommendations. Include a maintainer checklist for manual verification.",
+      "provider": "claude",
+      "producePrompt": "Aggregate the security findings from previous steps and generate a final security verdict report. The report must contain:\n1. A clear security verdict section mapping to PASS, PASS WITH FOLLOW-UP, or BLOCK.\n2. A clear separation of mandatory fixes (for BLOCK or PASS WITH FOLLOW-UP) from hardening recommendations.\n3. A maintainer checklist for manual verification.\nEnsure all examples and artifacts are public-safe and do not expose real incidents or sensitive details.",
+      "rubric": "Score the final security verdict report 0-10.\n\nRubric (10 pts):\n  C1 [4] Emits a clear security verdict mapping to PASS, PASS WITH FOLLOW-UP, or BLOCK.\n  C2 [3] Distinguishes exploitable, blocking bugs from hardening suggestions, separating mandatory fixes from recommendations.\n  C3 [3] Includes a maintainer checklist for manual verification and keeps all examples public-safe.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    }
+  ]
+}

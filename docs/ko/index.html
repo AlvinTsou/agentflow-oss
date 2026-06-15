@@ -191,7 +191,7 @@
           <span class="progress-date">상태 업데이트: 2026-06-14</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          공개 repository 의 OSS baseline 은 준비되어 있습니다. CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, active roadmap 이 갖추어졌습니다. Core engine 은 sprint recipes 실행, artifacts 와 state 저장, quality loops, resume, readiness signals 를 지원합니다. Middleman layer 는 provider capability validation, route metadata, security profiles, 재생 가능한 route audit output 을 제공합니다. 완료된 recipe set 은 <code>mini</code>, <code>research</code>, <code>sdd</code>, <code>release-readiness</code>, <code>pr-review</code> 입니다.
+          공개 repository 의 OSS baseline 은 준비되어 있습니다. CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, active roadmap 이 갖추어졌습니다. Core engine 은 sprint recipes 실행, artifacts 와 state 저장, quality loops, resume, readiness signals 를 지원합니다. Middleman layer 는 provider capability validation, route metadata, security profiles, 재생 가능한 route audit output 을 제공합니다. 완료된 recipe set 은 <code>mini</code>, <code>research</code>, <code>sdd</code>, <code>release-readiness</code>, <code>pr-review</code>, <code>security-review</code> 입니다.
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -215,7 +215,7 @@
           <li class="progress-item current">
             <div>
               <h3>릴리즈 준비 기능 강화</h3>
-              <p>현재 초점은 Pages accuracy, 실용적인 <code>pr-review</code> 문서, route audit examples, scoped security review recipe proposal 입니다.</p>
+              <p>현재 초점은 Pages accuracy, route audit examples, 차기 확장 기능입니다.</p>
             </div>
           </li>
         </ul>
@@ -256,7 +256,14 @@
               <span class="feature-marker"></span>
               <div class="feature-info">
                 <h4>Recipe Workflows 및 Review Automation</h4>
-                <p>release-readiness 와 PR review recipes 를 제공하며, 구조화된 review context 를 위한 git diff ingestion 을 지원합니다.</p>
+                <p>release-readiness 와 PR review recipes 를 제공하며, 구조화된 review context 를 위한 git diff ingestion 를 지원합니다.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Security Review Recipe</h4>
+                <p>인증, 데이터 액세스 및 안전하지 않은 로깅을 감사하고 구조화된 Verdict를 생성하는 3단계 보안 레시피입니다.</p>
               </div>
             </li>
           </ul>
@@ -265,13 +272,6 @@
         <div>
           <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit'; color: var(--accent-purple);">개발 계획 및 로드맵</h3>
           <ul class="feature-list">
-            <li class="feature-item">
-              <span class="feature-marker future"></span>
-              <div class="feature-info">
-                <h4>Security Review Recipe Proposal</h4>
-                <p>향후 security-focused recipe 를 구현하기 전 scope 와 offline fixtures 를 먼저 설계합니다.</p>
-              </div>
-            </li>
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">

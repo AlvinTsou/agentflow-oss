@@ -1,0 +1,6 @@
+{
+  "name": "dependency-change-test",
+  "dependencies": {
+    "some-thirdparty-library": "1.0.0"
+  }
+}

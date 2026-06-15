@@ -191,7 +191,7 @@
           <span class="progress-date">进度更新时间：2026-06-14</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          公开 repository 的 OSS baseline 已经到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 和 active roadmap 都已建立。Core engine 已能运行 sprint recipes、保存 artifacts 和 state、应用 quality loops、支持 resume，并生成 readiness signals。Middleman layer 已支持 provider capability validation、route metadata、security profiles，以及可回放的 route audit output。已完成 recipe set 包含 <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code> 与 <code>pr-review</code>。
+          公开 repository 的 OSS baseline 已经到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 和 active roadmap 都已建立。Core engine 已能运行 sprint recipes、保存 artifacts 和 state、应用 quality loops、支持 resume，并生成 readiness signals。Middleman layer 已支持 provider capability validation、route metadata、security profiles，以及可回放的 route audit output。已完成 recipe set 包含 <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code>、<code>pr-review</code> 与 <code>security-review</code>。
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -215,7 +215,7 @@
           <li class="progress-item current">
             <div>
               <h3>Release-Readiness 强化</h3>
-              <p>当前重点是 Pages accuracy、实用的 <code>pr-review</code> 文档、route audit examples，以及 scoped security review recipe proposal。</p>
+              <p>当前重点是 Pages accuracy、route audit examples，以及下一阶段的扩展功能。</p>
             </div>
           </li>
         </ul>
@@ -259,6 +259,13 @@
                 <p>已提供 release-readiness 与 PR review recipes，并支持 git diff ingestion 作为结构化 review context。</p>
               </div>
             </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Security Review Recipe</h4>
+                <p>专为身份验证、数据访问和不安全日志设计的 3 步骤 recipe，并提供结构化 Verdict。</p>
+              </div>
+            </li>
           </ul>
         </div>
 
@@ -268,17 +275,10 @@
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">
-                <h4>Security Review Recipe Proposal</h4>
-                <p>先完成未来 security-focused recipe 的范围设计与 offline fixture 规划，再进入实现。</p>
-              </div>
-            </li>
-            <li class="feature-item">
-              <span class="feature-marker future"></span>
-              <div class="feature-info">
                 <h4>公开文档校准</h4>
                 <p>持续同步 multilingual Pages、recipe guides、route audit examples 与 maintenance logs。</p>
               </div>
-            </div>
+            </li>
             <div class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">

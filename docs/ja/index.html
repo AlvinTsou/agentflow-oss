@@ -191,7 +191,7 @@
           <span class="progress-date">ステータス更新日：2026-06-14</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          公開 repository の OSS baseline は整備済みです。CI、issue templates、security policy、contribution docs、CLI reference、architecture docs、active roadmap が用意されています。Core engine は sprint recipes の実行、artifacts と state の保存、quality loops、resume、readiness signals をサポートしています。Middleman layer は provider capability validation、route metadata、security profiles、再生可能な route audit output を提供します。現在の完成済み recipe set は <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code>、<code>pr-review</code> です。
+          公開 repository の OSS baseline は整備済みです。CI、issue templates、security policy、contribution docs、CLI reference、architecture docs、active roadmap が用意されています。Core engine は sprint recipes の実行、artifacts と state の保存、quality loops、resume、readiness signals をサポートしています。Middleman layer は provider capability validation、route metadata、security profiles、再生可能な route audit output を提供します。現在の完成済み recipe set は <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code>、<code>pr-review</code>、<code>security-review</code> です。
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -215,7 +215,7 @@
           <li class="progress-item current">
             <div>
               <h3>リリース準備機能の強化</h3>
-              <p>現在は Pages accuracy、実用的な <code>pr-review</code> ドキュメント、route audit examples、scoped security review recipe proposal に注力しています。</p>
+              <p>現在は Pages accuracy、route audit examples、次期拡張機能に注力しています。</p>
             </div>
           </li>
         </ul>
@@ -259,19 +259,19 @@
                 <p>release-readiness と PR review recipes を提供し、構造化 review context 用の git diff ingestion をサポートします。</p>
               </div>
             </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Security Review Recipe</h4>
+                <p>認証、データアクセス、不安全なログ出力を対象とし、構造化された判定を行う専用の3ステップレシピです。</p>
+              </div>
+            </li>
           </ul>
         </div>
 
         <div>
           <h3 style="margin-bottom: 1.5rem; font-family: 'Outfit'; color: var(--accent-purple);">今後の予定</h3>
           <ul class="feature-list">
-            <li class="feature-item">
-              <span class="feature-marker future"></span>
-              <div class="feature-info">
-                <h4>Security Review Recipe Proposal</h4>
-                <p>将来の security-focused recipe について、実装前に scope と offline fixtures を設計します。</p>
-              </div>
-            </li>
             <li class="feature-item">
               <span class="feature-marker future"></span>
               <div class="feature-info">

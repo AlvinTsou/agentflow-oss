@@ -65,15 +65,13 @@ This release implements a production-grade automated code review workflow that i
 - **Git diff context ingestion:** Support dynamic substitution of the `{{GIT_DIFF}}` placeholder with the sprint's code diff relative to initialization.
 - **Offline test suite validation:** Implement comprehensive mock fixture tests validating clean and buggy PR paths under offline conditions.
 
-## Planned -- Post-v1.0
+## v1.4 -- Security Review Workflow (Completed)
 
-These features are designed and scoped but not yet implemented.
+This release implements a specialized security audit review recipe to analyze touched security surfaces and enforce policies.
 
-### New Recipes
-
-- **Security review recipe proposal.** A scoped proposal exists in
-  `docs/proposals/security-review-recipe.md`. Implementation is intentionally
-  pending recipe definition, offline fixtures, and validation coverage.
+- **Security review recipe implementation:** Expose a fully working `security-review` JSON recipe for auditing code changes.
+- **Offline mock validation:** Support four offline scenarios (clean config, unsafe logging, missing authorization, dependency change) under test coverage.
+- **Recipe documentation:** Documented security workflow steps and verdict guidelines.
 
 ## Future
 

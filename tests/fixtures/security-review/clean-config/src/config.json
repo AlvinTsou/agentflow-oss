@@ -1,0 +1,5 @@
+{
+  "theme": "dark",
+  "enableNotifications": true,
+  "maxRetryAttempts": 3
+}
