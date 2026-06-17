@@ -1,0 +1,6 @@
+{
+  "name": "dependency-plus-config-test",
+  "dependencies": {
+    "another-thirdparty-library": "2.0.0"
+  }
+}

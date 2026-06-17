@@ -57,7 +57,7 @@ const recipe = await getRecipe("security-review");
 }
 
 // 3. Sprint Mock Execution
-let currentScenario = "clean-config";
+let currentScenario = "clean-config" as string;
 
 mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanRequest, _options?: MiddlemanRunOptions) => {
   const messages = rawRequest.messages;
@@ -102,6 +102,37 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
         request: rawRequest,
         result: {
           output: "Security Risk Map: package.json modified. Class: dependencies. Risk: medium.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    } else if (currentScenario === "auth-plus-logging") {
+      assert.match(userMessage, /pass/);
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "Security Risk Map: server.ts modified. Class: auth/logging/routing. Risk: high.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    } else if (currentScenario === "dependency-plus-config") {
+      assert.match(userMessage, /another-thirdparty-library/);
+      assert.match(userMessage, /maxRetryAttempts/);
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "Security Risk Map: package.json and config.json modified. Class: dependencies/configuration. Risk: medium.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    } else if (currentScenario === "clean-sensitive-name") {
+      assert.match(userMessage, /auth-service\.ts/);
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "Security Risk Map: auth-service.ts modified. Class: code. Risk: low.",
           inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
         },
       };
@@ -157,6 +188,33 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
           inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
         },
       };
+    } else if (currentScenario === "auth-plus-logging") {
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "Findings:\n- [high] server.ts:10-10 Unsafe logging of password in console.log.\n- [high] server.ts:11-12 Missing authorization check on route /api/admin/data.\n  Preconditions: public HTTP request.\n  Fix: Add middleware auth and remove unsafe log.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    } else if (currentScenario === "dependency-plus-config") {
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "Findings:\n- [medium] package.json:4-4 Added dependency another-thirdparty-library.\n  Preconditions: execution of third-party code.\n  Fix: Verify dependencies.\n- [low] config.json:2-3 Changed maxRetryAttempts.\n  Fix: Verify settings.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    } else if (currentScenario === "clean-sensitive-name") {
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "No security issues detected. Code is completely clean.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
     }
   }
 
@@ -209,6 +267,33 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
           inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
         },
       };
+    } else if (currentScenario === "auth-plus-logging") {
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "# Security Verdict\n\nVerdict: BLOCK\n\nMandatory Fixes:\n- [blocking] Remove unsafe logging and add auth check in server.ts.\n\nMaintainer Checklist:\n- [ ] Verify security status.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    } else if (currentScenario === "dependency-plus-config") {
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "# Security Verdict\n\nVerdict: PASS WITH FOLLOW-UP\n\nFollow-up:\n- [deferred] Verify another-thirdparty-library.\n\nMaintainer Checklist:\n- [ ] Audit dependency.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
+    } else if (currentScenario === "clean-sensitive-name") {
+      return {
+        route: { provider: "claude" as const, reason: "mock" },
+        request: rawRequest,
+        result: {
+          output: "# Security Verdict\n\nVerdict: PASS\n\nNo issues detected.",
+          inputTokens: 1, outputTokens: 1, totalTokens: 2, durationMs: 1, costUsd: 0,
+        },
+      };
     }
   }
 
@@ -227,7 +312,15 @@ mock.method(Middleman.prototype, "runRequest", async (rawRequest: MiddlemanReque
 });
 
 // Run scenarios
-const scenarios = ["clean-config", "unsafe-logging", "missing-auth", "dependency-change"] as const;
+const scenarios = [
+  "clean-config",
+  "unsafe-logging",
+  "missing-auth",
+  "dependency-change",
+  "auth-plus-logging",
+  "dependency-plus-config",
+  "clean-sensitive-name"
+] as const;
 
 for (const sc of scenarios) {
   currentScenario = sc;
@@ -270,6 +363,14 @@ for (const sc of scenarios) {
     } else if (sc === "dependency-change") {
       assert.match(lastOutput, /Verdict:\s*PASS WITH FOLLOW-UP/);
       assert.match(lastOutput, /Verify some-thirdparty-library/);
+    } else if (sc === "auth-plus-logging") {
+      assert.match(lastOutput, /Verdict:\s*BLOCK/);
+      assert.match(lastOutput, /Remove unsafe logging and add auth check/);
+    } else if (sc === "dependency-plus-config") {
+      assert.match(lastOutput, /Verdict:\s*PASS WITH FOLLOW-UP/);
+      assert.match(lastOutput, /Verify another-thirdparty-library/);
+    } else if (sc === "clean-sensitive-name") {
+      assert.match(lastOutput, /Verdict:\s*PASS/);
     }
   } finally {
     try {

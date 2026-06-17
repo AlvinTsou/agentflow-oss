@@ -17,7 +17,8 @@
  *   pnpm ag force-pass      <sprintDir> --step <name> [--note <msg>]
  *   pnpm ag resolve         <sprintDir> --id <feedback-id>
  *
- *   <recipe> = mini | sdd | research
+ *   <recipe> (for init) = mini | sdd | research | release-readiness | pr-review | security-review
+ *   <recipe> (for run)  = mini | sdd | research
  */
 
 import { existsSync, readFileSync, statSync } from "node:fs";
@@ -27,7 +28,8 @@ interface Dispatch {
   argv: string[];
 }
 
-const KNOWN_RECIPES = new Set(["mini", "sdd", "research"]);
+const RUN_RECIPES = new Set(["mini", "sdd", "research"]);
+const INIT_RECIPES = new Set(["mini", "sdd", "research", "release-readiness", "pr-review", "security-review"]);
 
 type SprintDirState =
   | { kind: "not-a-dir" }
@@ -74,7 +76,7 @@ function printHelp(exitCode = 0): never {
       `  pnpm ag init <recipe> [...opts]\n` +
       `      Write sprint skeleton (INPUT.md + agentflow.config.json + state.json\n` +
       `      + sprint-init tag) without invoking any provider. Recipe is one of:\n` +
-      `      ${[...KNOWN_RECIPES].join(" | ")}.\n` +
+      `      ${[...INIT_RECIPES].join(" | ")}.\n` +
       `  pnpm ag run <recipe> [...opts]\n` +
       `      Recipes:\n` +
       `        mini       — 4-step synthetic self-test (no flags)\n` +
@@ -122,7 +124,7 @@ function dispatch(argv: string[]): Dispatch {
       // sprints fall through to ag resume (or explicit error) because
       // auto-dispatch + gitResetHard could otherwise destroy uncommitted
       // work in the sprint repo.
-      if (!KNOWN_RECIPES.has(target)) {
+      if (!RUN_RECIPES.has(target)) {
         const inspected = inspectSprintDir(target);
         if (inspected.kind === "init") {
           return { module: "./ag-resume.js", argv: rest };
@@ -146,7 +148,7 @@ function dispatch(argv: string[]): Dispatch {
       if (target === "sdd") return { module: "./run-sdd.js", argv: remain };
       if (target === "research") return { module: "./run-research.js", argv: remain };
       console.error(
-        `ag run: "${target}" is neither a known recipe (${[...KNOWN_RECIPES].join(" | ")}) nor an initialised sprint directory.`,
+        `ag run: "${target}" is neither a known recipe (${[...RUN_RECIPES].join(" | ")}) nor an initialised sprint directory.`,
       );
       process.exit(2);
     }

@@ -55,3 +55,21 @@ To view sprint logs and route decisions:
 ```bash
 pnpm ag status sprints/<sprint-id>
 ```
+
+## Example Verdict Output
+
+Here is a sanitized example of a `generate-security-verdict` output that results in a `BLOCK`:
+
+```markdown
+# Security Verdict
+
+Verdict: BLOCK
+
+Mandatory Fixes:
+- [blocking] Remove unsafe logging of password in server.ts.
+- [blocking] Add authorization check middleware to endpoint /api/admin/data.
+
+Maintainer Checklist:
+- [ ] Ensure logs do not contain raw user passwords.
+- [ ] Verify endpoint /api/admin/data is restricted to admin roles.
+```

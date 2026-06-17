@@ -112,7 +112,7 @@ export function parseInitArgs(argv: string[]): ParsedInitArgs {
   if (out.includeDeferred && !out.carryOver) {
     throw new Error(`--include-deferred requires --carry-over`);
   }
-  if (out.recipe !== "mini" && !out.problemPath && !out.problem) {
+  if ((out.recipe === "sdd" || out.recipe === "research") && !out.problemPath && !out.problem) {
     throw new Error(`recipe "${out.recipe}" requires --input <file> or --problem "<text>".`);
   }
   if (out.recipe === "sdd" && !out.language) {

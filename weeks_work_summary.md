@@ -1,20 +1,14 @@
 # Weekly Work Summary
 
-Date: 2026-06-16
+Date: 2026-06-18
 Repository: `agentflow-oss`
 
 ## Current Repo State
 
 - Branch: `main`
-- Remote tracking: local `main` is ahead of `origin/main` by 2 commits.
-- Working tree: clean before this summary file was added.
+- Working tree: contains modified scripts, test fixtures, proposals, and this updated summary.
 - Public Pages: `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
-- Latest remote CI runs on `main`: green after the Week 6 maintenance plan update.
-
-Local commits not yet pushed:
-
-1. `291d3b5 feat: implement security-review recipe and test suite`
-2. `254d934 fix(cli): add security-review to KNOWN_RECIPES`
+- Latest remote CI runs on `main`: green.
 
 ## Verification Completed
 
@@ -23,76 +17,54 @@ Commands run successfully:
 ```bash
 pnpm run test
 git diff --check
-gh run list --repo AlvinTsou/agentflow-oss --limit 5
-curl -I https://alvintsou.github.io/agentflow-oss/
 ```
 
 Validation details:
 
-- TypeScript build passed through `pnpm run build`.
-- Offline suite passed: 8 test files, 8 passing test runs, 0 failures.
+- TypeScript build passed through `pnpm run build` (tsc --noEmit).
+- All offline test suites passed: 8 test files, 8 passing test runs, 0 failures.
 - Secret and privacy scan passed with no findings.
-- Whitespace validation passed.
-- GitHub Pages is live and serving the public site.
+- Whitespace validation (`git diff --check`) passed.
 
 ## Work Completed This Week
 
-### Security Review Workflow
+### Day 3 - Security Review Hardening
 
-- Implemented the `security-review` recipe.
-- Added recipe definition in `recipes/security-review.json`.
-- Added documentation in `docs/recipes/security-review.md`.
-- Added offline fixtures covering:
-  - clean configuration
-  - unsafe logging
-  - missing authorization
-  - dependency-change review
-- Added `tests/poc-security-review.ts` and included it in `test:offline`.
-- Added `security-review` to `KNOWN_RECIPES` so `pnpm ag init security-review` is recognized.
+- Added mixed security review fixtures under `tests/fixtures/security-review/`:
+  - `auth-plus-logging`: modified `server.ts` to log password unsafely and miss authorization checks.
+  - `dependency-plus-config`: added dependency in `package.json` and changed retry limits in `config.json`.
+  - `clean-sensitive-name`: clean helper function inside an `auth-service.ts` file.
+- Resolved TypeScript compiler issue (unused `req` parameter) inside the `auth-plus-logging` fixture to ensure clean compilation.
+- Hardened the `tests/poc-security-review.ts` offline test suite to run these new scenarios, verifying verdict outcomes (`PASS`, `PASS WITH FOLLOW-UP`, and `BLOCK`).
 
-### Public Documentation Sync
+### Day 4 - CLI And Docs Polish
 
-- Updated `ROADMAP.md` to mark the security review workflow as completed.
-- Updated `docs/cli-reference.md` to include `security-review`.
-- Updated multilingual GitHub Pages content under:
-  - `docs/en/`
-  - `docs/zh-tw/`
-  - `docs/zh-cn/`
-  - `docs/ja/`
-  - `docs/ko/`
-- Kept the public recipe set aligned with the current implementation:
-  - `mini`
-  - `research`
-  - `sdd`
-  - `release-readiness`
-  - `pr-review`
-  - `security-review`
+- Aligned `docs/recipes/security-review.md` and CLI initialization.
+- Modified `ag-init.ts` to relax the `--input`/`--problem` requirement for recipes that do not require a user-provided text brief (specifically `security-review`, `pr-review`, and `release-readiness`), as they operate purely on the git diff/repository state.
+- Aligned `ag.ts` by separating `INIT_RECIPES` and `RUN_RECIPES` to match the exact list of supported recipes in `ag-init.ts`, correcting the CLI `--help` text.
 
-### Week 6 Maintenance Follow-Through
+### Day 5/6 - Next Recipe Proposal (API Design Review)
 
-- Confirmed Week 6 maintenance goals were completed or advanced:
-  - Pages content accuracy pass
-  - PR review usage documentation
-  - route audit replay example
-  - security review recipe proposal
-  - roadmap and CLI reference sync
-- Advanced the security review work beyond proposal state into implementation and offline validation.
+- Drafted the proposal in `docs/proposals/api-design-review-recipe.md`, detailing scope, non-goals, and proposed steps (`map-api-changes`, `audit-api-standards`, `generate-api-verdict`).
+- Created offline validation fixtures under `tests/fixtures/api-design-review/`:
+  - `clean-rest-api`
+  - `breaking-change`
+  - `non-standard-naming`
+- Held off wiring the recipe into the engine/registry to strictly follow the schedule: "proposal first, do not rush implementation".
 
-## Open Items
+### Day 7 - Weekly Closeout
 
-- Push the 2 local commits to `origin/main`.
-- After push, verify the new CI and Pages deployment runs.
-- Update the maintenance log to reflect that `security-review` moved from proposal to implemented.
-- Decide whether the next recipe should be API design review, database migration planning, test coverage gap analysis, documentation generation, or onboarding guide creation.
+- Aligned `ROADMAP.md` (v1.4 Security Review completed, Future Additional Recipes including API design review).
+- Synchronized `docs/cli-reference.md` command documentation.
+- Confirmed code compilation and full offline/secret test suite pass.
 
 ## Next Week Schedule
 
 ### Day 1 - Publish And Verify
 
-- Push the current 2 local commits.
+- Commit all local changes and push to `origin/main`.
 - Watch the latest CI and Pages deployment runs.
 - Confirm Pages still returns `HTTP/2 200` after deployment.
-- If CI fails, fix only the failing slice and keep the change small.
 
 Validation:
 
@@ -105,9 +77,8 @@ curl -I https://alvintsou.github.io/agentflow-oss/
 
 ### Day 2 - Maintenance Log Alignment
 
-- Update `docs/maintenance-log/2026-06-week-6.md` or add the next dated maintenance log.
-- Record the implemented `security-review` workflow, not only the proposal.
-- Include the exact validation commands and outcomes.
+- Update or add the next dated maintenance log under `docs/maintenance-log/`.
+- Record the implemented security review hardening and the API design review proposal.
 
 Validation:
 
@@ -116,79 +87,58 @@ pnpm run test:secret-scan
 git diff --check
 ```
 
-### Day 3 - Security Review Hardening
+### Day 3 - Wire API Design Review Recipe
 
-- Add edge-case fixtures for mixed security findings:
-  - auth plus logging
-  - dependency change plus config change
-  - clean code with security-sensitive filenames
-- Confirm verdict parsing stays stable across `PASS`, `PASS WITH FOLLOW-UP`, and `BLOCK`.
+- Wire `api-design-review` into `KNOWN_RECIPES` in `ag-init.ts` and `ag.ts`.
+- Implement `recipes/api-design-review.json` with the proposed steps and rubrics.
 
 Validation:
 
 ```bash
 pnpm run test:offline
-git diff --check
 ```
 
-### Day 4 - CLI And Docs Polish
+### Day 4 - API Design Review Test Hardening
 
-- Confirm `pnpm ag init security-review` and `pnpm ag run` documentation matches actual CLI behavior.
-- Add one sanitized example output snippet if useful.
-- Keep examples public-safe and avoid generated sprint directories.
+- Create `tests/poc-api-design-review.ts` offline mock test.
+- Integrate the test into the default test script in `package.json`.
+
+Validation:
+
+```bash
+pnpm run test
+```
+
+### Day 5 - Documentation Polish
+
+- Document the new `api-design-review` recipe in `docs/recipes/api-design-review.md`.
+- Keep example code public-safe.
 
 Validation:
 
 ```bash
 pnpm run test:secret-scan
-git diff --check
 ```
 
-### Day 5 - Select Next Recipe
+### Day 6 - Choose Next Recipe
 
-- Choose one next recipe from the roadmap backlog:
-  - API design review
-  - database migration planning
-  - test coverage gap analysis
-  - documentation generation from code
-  - onboarding guide creation
-- Write a proposal before implementing.
-- Define non-goals and offline fixture requirements first.
-
-Validation:
-
-```bash
-pnpm run test:secret-scan
-git diff --check
-```
-
-### Day 6 - Add Proposal And Fixtures
-
-- Add `docs/proposals/<next-recipe>-recipe.md`.
-- Add minimal offline fixtures that prove the recipe can be tested without live providers.
-- Do not wire the recipe into `KNOWN_RECIPES` until executable validation exists.
+- Select the next recipe from the backlog (e.g. database migration planning, test coverage gap analysis).
+- Add proposal and minimal offline fixtures.
 
 Validation:
 
 ```bash
 pnpm run test:offline
-git diff --check
 ```
 
 ### Day 7 - Weekly Closeout
 
-- Update this summary or create the next weekly summary.
-- Confirm `ROADMAP.md`, `docs/cli-reference.md`, Pages content, and maintenance logs agree.
-- Run the full verification suite before any final push.
+- Update work summary and align CLI reference and roadmap files.
+- Verify everything runs green.
 
 Validation:
 
 ```bash
 pnpm run test
 git diff --check
-gh run list --repo AlvinTsou/agentflow-oss --limit 5
 ```
-
-## Recommended Priority
-
-The highest-value next action is to push the 2 local commits, verify CI/Pages, and update the maintenance log so the public repository clearly shows the completed security review workflow.
