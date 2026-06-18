@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TriggerConfig",
+  "description": "Trigger Configuration schema for agentflow daemon",
+  "type": "object",
+  "properties": {
+    "triggers": {
+      "type": "array",
+      "description": "List of configured triggers to run daemon workflows",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier name for this trigger"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["cron", "fs-watch", "git-hook"],
+            "description": "Trigger type"
+          },
+          "schedule": {
+            "type": "string",
+            "description": "Standard 5-field cron schedule expression (only required for cron type, e.g. '*/5 * * * *')"
+          },
+          "watchPath": {
+            "type": "string",
+            "description": "File or folder path to watch for modifications (only required for fs-watch type)"
+          },
+          "gitDir": {
+            "type": "string",
+            "description": "Git repository root directory (only for git-hook type, defaults to current dir)"
+          },
+          "watchRef": {
+            "type": "string",
+            "description": "Git ref path to watch for commits (only for git-hook type, e.g. 'refs/heads/main')"
+          },
+          "recipe": {
+            "type": "string",
+            "description": "The name of the recipe to execute (e.g., 'security-review')"
+          },
+          "sprintDirPattern": {
+            "type": "string",
+            "description": "Optional custom format pattern to derive the sprint folder name"
+          }
+        },
+        "required": ["name", "type", "recipe"]
+      }
+    }
+  },
+  "required": ["triggers"]
+}

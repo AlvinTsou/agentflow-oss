@@ -66,6 +66,7 @@ export type SprintEventType =
   | "step-force-passed"
   | "step-approved"
   | "step-skipped"
+  | "step-condition-skipped"
   | "step-blocked"
   | "feedback-consumed"
   | "iteration-started"

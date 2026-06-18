@@ -1,0 +1,36 @@
+{
+  "name": "api-design-review",
+  "description": "3-step API design review workflow recipe to audit HTTP routes, payload schemas, query parameters, compliance with RESTful standards, camelCase naming, and backward-compatibility.",
+  "steps": [
+    {
+      "name": "map-api-changes",
+      "description": "Inspect the git diff of the current changes and map touched API routes, payload models, query parameters, and controllers.",
+      "provider": "claude",
+      "producePrompt": "Inspect the git diff of the current changes:\n\n```diff\n{{GIT_DIFF}}\n```\n\nMap all touched API routes and payload models. Identify added, modified, or deleted endpoints, schemas, and query parameters. Produce a concise API change map.",
+      "rubric": "Score the API change map report 0-10.\n\nRubric (10 pts):\n  C1 [4] Correctly identifies changed API endpoints, HTTP routes, and touched controller files.\n  C2 [3] Classifies changes into appropriate categories (e.g. added, modified, deleted endpoints/schemas).\n  C3 [3] Lists changed request payload models and query parameters.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    },
+    {
+      "name": "audit-api-standards",
+      "description": "Audit the mapped API changes and raw files against RESTful design guidelines, check backward-compatibility (breaking changes), camelCase naming, error payload structures, and auth gates.",
+      "provider": "claude",
+      "producePrompt": "Audit the API changes and raw file contents from the git diff:\n\n```diff\n{{GIT_DIFF}}\n```\n\nVerify compliance with RESTful URL guidelines, camelCase naming for fields, proper HTTP status codes, structured error payloads, and authentication gate requirements. Inspect for breaking changes (e.g. removed fields or changed types). Output detailed audit findings categorized by severity (high, medium, low).",
+      "rubric": "Score the API standards audit findings report 0-10.\n\nRubric (10 pts):\n  C1 [4] Identifies RESTful URL compliance, camelCase naming, status codes, and auth gate issues.\n  C2 [3] Detects and flags potential breaking backward-compatibility changes (e.g. removed fields, type changes).\n  C3 [3] Formats findings by severity and references exact files.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    },
+    {
+      "name": "generate-api-verdict",
+      "description": "Roll up API design findings into PASS, PASS WITH FOLLOW-UP, or BLOCK. Separate blocking issues from design recommendations, and provide a maintainer checklist.",
+      "provider": "claude",
+      "producePrompt": "Aggregate the API design findings from previous steps and generate a final API design verdict report. The report must contain:\n1. A clear verdict section mapping to PASS, PASS WITH FOLLOW-UP, or BLOCK.\n2. A clear separation of mandatory fixes (for BLOCK or PASS WITH FOLLOW-UP) from general design recommendations.\n3. A maintainer checklist for manual verification.\nEnsure all examples and artifacts are public-safe and do not expose real incidents or sensitive details.",
+      "rubric": "Score the final API design verdict report 0-10.\n\nRubric (10 pts):\n  C1 [4] Emits a clear API design verdict mapping to PASS, PASS WITH FOLLOW-UP, or BLOCK.\n  C2 [3] Clearly separates mandatory design fixes from non-blocking recommendations.\n  C3 [3] Includes an actionable maintainer checklist for manual verification.\n\nOutput ONLY a single-line JSON object, no prose, no fences:\n{\"score\": <0-10>, \"passed\": [\"C1\", \"C2\", \"C3\"], \"failed\": [], \"notes\": \"<one short sentence>\"}",
+      "targetScore": 9,
+      "maxRepeat": 3,
+      "intent": "real-codebase"
+    }
+  ]
+}

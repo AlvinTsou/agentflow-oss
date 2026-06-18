@@ -143,4 +143,14 @@ Run a pre-flight gateway smoke test to verify connectivity and credential validi
     ✗ Smoke test failed: Gateway returned status 502: Bad Gateway
     ```
 
+### `daemon`
+Start the background event-driven trigger worker daemon.
+
+- **Usage**: `pnpm ag daemon [...options]`
+- **Options**:
+  - `-c, --config <path>`: Path to triggers configuration JSON file (default: `triggers.json`).
+  - `-d, --dry-run`: Enable dry run (validates the triggers configuration and exits without executing any actions).
+- **Triggers Schema**:
+  The configuration file specifies automated triggers like `"cron"`, `"fs-watch"`, and `"git-hook"` to auto-run recipes.
+
 For a full walkthrough of how these commands interact in a real sprint, see [Feedback Commands Guide](examples/feedback-commands.md). For recipe-specific usage, see [PR Review Recipe](recipes/pr-review.md), [Security Review Recipe](recipes/security-review.md), and [Route Audit Replay Example](examples/route-audit-replay.md).

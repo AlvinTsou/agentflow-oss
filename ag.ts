@@ -29,7 +29,7 @@ interface Dispatch {
 }
 
 const RUN_RECIPES = new Set(["mini", "sdd", "research"]);
-const INIT_RECIPES = new Set(["mini", "sdd", "research", "release-readiness", "pr-review", "security-review"]);
+const INIT_RECIPES = new Set(["mini", "sdd", "research", "release-readiness", "pr-review", "security-review", "api-design-review"]);
 
 type SprintDirState =
   | { kind: "not-a-dir" }
@@ -99,7 +99,9 @@ function printHelp(exitCode = 0): never {
       `  pnpm ag resolve         <sprintDir> --id <feedback-id>\n` +
       `      Stamp resolvedAt on the matching feedback.jsonl row (closes open RCs).\n` +
       `  pnpm ag smoke-test <provider> [...opts]\n` +
-      `      Run a pre-flight gateway smoke test. Supported options: --baseUrl, --apiKey, --apiKeyEnv, --model, --timeoutMs.\n`,
+      `      Run a pre-flight gateway smoke test. Supported options: --baseUrl, --apiKey, --apiKeyEnv, --model, --timeoutMs.\n` +
+      `  pnpm ag daemon [...opts]\n` +
+      `      Start the background trigger daemon. Options: -c/--config <path>, -d/--dry-run.\n`,
   );
   process.exit(exitCode);
 }
@@ -160,6 +162,8 @@ function dispatch(argv: string[]): Dispatch {
       return { module: "./ag-replay.js", argv: rest };
     case "smoke-test":
       return { module: "./ag-smoke-test.js", argv: rest };
+    case "daemon":
+      return { module: "./ag-daemon.js", argv: rest };
     case "approve":
     case "request-changes":
     case "force-pass":

@@ -73,6 +73,15 @@ This release implements a specialized security audit review recipe to analyze to
 - **Offline mock validation:** Support four offline scenarios (clean config, unsafe logging, missing authorization, dependency change) under test coverage.
 - **Recipe documentation:** Documented security workflow steps and verdict guidelines.
 
+## v1.5 -- Loop Engineering (Completed)
+
+This release incorporates autonomy and event-driven orchestration from Loop Engineering.
+
+- **Event-Driven Trigger Layer (A-1):** Support background worker daemon with cron, fs-watch, and git-hook triggers.
+- **Sprint Outcome Index (A-2):** Record sprint results in a centralized append-only JSONL index for historical querying.
+- **Conditional Step Activation (A-3):** Allow steps to skip execution dynamically based on step-level condition functions.
+- **Parallel forEach Execution (A-4):** Support concurrent iteration executions bounded by a counting semaphore configuration.
+
 ## Future
 
 These items are on the long-term radar but not yet scoped in detail.

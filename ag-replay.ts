@@ -43,6 +43,7 @@ interface RowAgg {
   endedAt?: string;
   passed: boolean;
   forced: boolean;
+  skipped?: "config" | "condition";
   routeDetails: Array<{
     phase: string;
     attempt: number;
@@ -211,6 +212,26 @@ function aggregate(events: SprintEvent[]): {
         if (ev.score !== undefined) row.finalScore = ev.score;
       }
     }
+    if (ev.type === "step-skipped" || ev.type === "step-condition-skipped") {
+      const key = rowKey(ev.step!, ev.iteration);
+      const row: RowAgg = byKey[key] ?? {
+        step: ev.step!,
+        iteration: ev.iteration,
+        attempts: 0,
+        finalScore: 0,
+        tokens: 0,
+        costUsd: 0,
+        startedAt: ev.ts,
+        endedAt: ev.ts,
+        passed: false,
+        forced: false,
+        routeDetails: [],
+      };
+      row.endedAt = ev.ts;
+      row.skipped = ev.type === "step-skipped" ? "config" : "condition";
+      byKey[key] = row;
+      if (!rows.includes(row)) rows.push(row);
+    }
   }
 
   return { rows, totalTokens, totalCost, startedAt, endedAt, recipeName, sprintId, terminal, failedAt };
@@ -233,7 +254,16 @@ function render(agg: ReturnType<typeof aggregate>): string {
   lines.push(`|---|---|---:|---:|---:|---:|---|---:|`);
   for (const row of agg.rows) {
     const name = row.iteration ? `${row.step}/${row.iteration}` : row.step;
-    const status = row.passed ? (row.forced ? "force-pass" : "passed") : (row.endedAt ? "FAILED" : "running");
+    let status = "running";
+    if (row.skipped === "config") {
+      status = "skipped";
+    } else if (row.skipped === "condition") {
+      status = "cond-skipped";
+    } else if (row.passed) {
+      status = row.forced ? "force-pass" : "passed";
+    } else if (row.endedAt) {
+      status = "FAILED";
+    }
     const uniqProviders = Array.from(new Set(row.routeDetails.map((rd) => rd.provider)));
     const providersStr = uniqProviders.length > 0 ? uniqProviders.join(", ") : "—";
     lines.push(

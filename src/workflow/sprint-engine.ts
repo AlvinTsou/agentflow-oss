@@ -39,6 +39,8 @@ import {
   type CarryOver,
   type Readiness,
 } from "./readiness.js";
+import { SprintIndex } from "./sprint-index.js";
+import { Semaphore } from "../util/semaphore.js";
 
 /**
  * Resolved provider names for one phase-loop unit (a single-pass step OR
@@ -461,10 +463,39 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
       continue;
     }
 
+    const ctx: StepContext = { sprintId, sprintDir, priorArtifacts, priorIterations };
+
+    if (step.condition && !step.condition(ctx)) {
+      const skipArtifact: Artifact = {
+        frontmatter: {
+          step: step.name,
+          sprint: sprintId,
+          score: 0,
+          attempts: 0,
+          provider: step.provider,
+          generated_at: new Date().toISOString(),
+          skipped: true,
+        },
+        body: "<!-- step skipped via step condition (condition evaluated to false) -->",
+      };
+      writeArtifact(join(stepDir, "output.md"), skipArtifact);
+      priorArtifacts[step.name] = skipArtifact;
+      state.completedSteps.push(step.name);
+      state.lastEventTs = new Date().toISOString();
+      store.save(state);
+      gitCommit(
+        ["."],
+        `chore(agentflow): ${step.name} skipped via condition`,
+        gitCwd,
+      );
+      gitTag(stepTagName(sprintId, i, step.name), gitCwd);
+      store.emit({ type: "step-condition-skipped", step: step.name });
+      perStep.push({ step: step.name, score: 0, attempts: 0, tokens: 0 });
+      continue;
+    }
+
     store.save(state);
     store.emit({ type: "step-started", step: step.name });
-
-    const ctx: StepContext = { sprintId, sprintDir, priorArtifacts, priorIterations };
 
     // Phase 7.3 — config overrides target/maxRepeat/provider/model when set.
     // Provider cascade per phase: config step-level `provider` feeds baseProvider;
@@ -579,128 +610,440 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
         }
       }
 
-      for (const item of items) {
-        if (completedIters.includes(item.id)) continue;
+      const maxConcurrent = fe.maxConcurrent ?? 1;
 
-        const iterDir = join(stepDir, item.id);
-        mkdirSync(iterDir, { recursive: true });
-        state.currentIteration = item.id;
-        store.save(state);
+      if (maxConcurrent > 1) {
+        const sem = new Semaphore(maxConcurrent);
+        const stateMutex = new Semaphore(1);
 
-        // Resolve per-iter override (Phase 5). When set, rebuild a
-        // dedicated runner triple + resolved-provider tag for this iter;
-        // otherwise reuse the step-default triple to keep the no-override
-        // hot path zero-cost.
-        const iterOverride = resolveItemOverride(fe, item, ctx);
-        const iterRunnersBundle = iterOverride
-          ? buildRunners(
-              produceProvider, reviewProvider, fixProvider,
-              produceOptions, reviewOptions, fixOptions,
-              iterOverride,
-              effectiveConfig.policy,
-            )
-          : stepDefault;
-        const iterRunners = iterRunnersBundle.runners;
-        const iterResolved = iterRunnersBundle.resolved;
+        const tasks = items.map(async (item) => {
+          if (completedIters.includes(item.id)) return;
 
-        store.emit({
-          type: "iteration-started",
-          step: step.name,
-          iteration: item.id,
-          ...(iterOverride ? { providerOverride: formatProviderOverride(iterOverride) } : {}),
+          const iterDir = join(stepDir, item.id);
+          mkdirSync(iterDir, { recursive: true });
+
+          await sem.acquire();
+
+          let iterLoopResult;
+          let iterRunners;
+          let iterResolved;
+          let iterInjectFeedback = false;
+          let iterIngested: any = null;
+
+          try {
+            const iterOverride = resolveItemOverride(fe, item, ctx);
+            const iterRunnersBundle = iterOverride
+              ? buildRunners(
+                  produceProvider, reviewProvider, fixProvider,
+                  produceOptions, reviewOptions, fixOptions,
+                  iterOverride,
+                  effectiveConfig.policy,
+                )
+              : stepDefault;
+            iterRunners = iterRunnersBundle.runners;
+            iterResolved = iterRunnersBundle.resolved;
+
+            store.emit({
+              type: "iteration-started",
+              step: step.name,
+              iteration: item.id,
+              ...(iterOverride ? { providerOverride: formatProviderOverride(iterOverride) } : {}),
+            });
+
+            iterIngested = ingestFeedback({
+              sprintDir,
+              step: step.name,
+              iteration: item.id,
+            });
+            iterInjectFeedback =
+              effective.consumeFeedback && iterIngested.contextBlock.length > 0;
+            const iterHumanPrefix = iterInjectFeedback
+              ? `${iterIngested.contextBlock}\n---\n\n`
+              : "";
+
+            const itemPrompt = iterHumanPrefix + fe.producePrompt(ctx, item);
+            const itemRubric = iterHumanPrefix + (
+              typeof fe.rubric === "function" ? fe.rubric(ctx, item) : fe.rubric
+            );
+            const reviewsDir = join(iterDir, "reviews");
+
+            iterLoopResult = await qualityLoop({
+              producePrompt: itemPrompt,
+              reviewPromptFor: (out) => buildReviewPrompt(itemRubric, out),
+              fixPromptFor: (out, rev) => buildFixPrompt(itemRubric, out, rev),
+              parseScore: defaultParseScore,
+              targetScore: iterTarget,
+              maxRepeat: iterMaxRepeat,
+              onPhase: makeOnPhase(reviewsDir, iterResolved, item.id),
+              preReview: step.preReview
+                ? (output: string) => step.preReview!(ctx, output)
+                : undefined,
+              ...iterRunners,
+            });
+          } catch (err) {
+            sem.release();
+            await stateMutex.acquire();
+            try {
+              const message = err instanceof Error ? err.message : String(err);
+              const latestState = store.load();
+              if (latestState) {
+                latestState.failedAt = {
+                  step: step.name,
+                  stepIdx: i,
+                  score: 0,
+                  attempts: 0,
+                  ts: new Date().toISOString(),
+                  reason: "runtime",
+                  errorMessage: message,
+                  iteration: item.id,
+                };
+                latestState.lastEventTs = latestState.failedAt.ts;
+                store.save(latestState);
+              }
+              store.emit({
+                type: "iteration-failed",
+                step: step.name,
+                iteration: item.id,
+                msg: `runtime: ${message}`,
+              });
+              store.emit({ type: "sprint-failed", step: step.name, msg: message });
+              gitCommit(
+                ["."],
+                `chore(agentflow): sprint ${sprintId} crashed at ${step.name}/${item.id} (${message})`,
+                gitCwd,
+              );
+              gitTag(sprintFailedTagName(sprintId), gitCwd);
+            } finally {
+              stateMutex.release();
+            }
+            throw err;
+          }
+
+          sem.release();
+
+          // Critical section for state save, file writing, and git commits to avoid race conditions
+          await stateMutex.acquire();
+          try {
+            let iterForced = false;
+            if (!iterLoopResult.passed) {
+              store.emit({
+                type: "iteration-failed",
+                step: step.name,
+                iteration: item.id,
+                attempt: iterLoopResult.attempts,
+                score: iterLoopResult.finalScore,
+                msg: `target=${iterTarget} maxRepeat=${iterMaxRepeat}`,
+              });
+
+              const decision: MaxRepeatDecision = onMaxRepeat
+                ? await onMaxRepeat({
+                    step: step.name,
+                    stepIdx: i,
+                    iteration: item.id,
+                    finalScore: iterLoopResult.finalScore,
+                    targetScore: iterTarget,
+                    attempts: iterLoopResult.attempts,
+                    finalOutput: iterLoopResult.finalOutput,
+                  })
+                : "abort";
+
+              if (decision === "abort") {
+                const latestState = store.load();
+                if (latestState) {
+                  latestState.failedAt = {
+                    step: step.name,
+                    stepIdx: i,
+                    score: iterLoopResult.finalScore,
+                    attempts: iterLoopResult.attempts,
+                    ts: new Date().toISOString(),
+                    reason: "convergence",
+                    iteration: item.id,
+                  };
+                  latestState.lastEventTs = latestState.failedAt.ts;
+                  store.save(latestState);
+                }
+                store.emit({ type: "sprint-failed", step: step.name });
+                gitCommit(
+                  ["."],
+                  `chore(agentflow): sprint ${sprintId} failed at ${step.name}/${item.id} (score=${iterLoopResult.finalScore})`,
+                  gitCwd,
+                );
+                gitTag(sprintFailedTagName(sprintId), gitCwd);
+                throw new Error(
+                  `Step "${step.name}" iteration "${item.id}" failed: score=${iterLoopResult.finalScore} after ${iterLoopResult.attempts} attempts (target=${iterTarget}).`,
+                );
+              }
+
+              iterForced = true;
+              store.emit({
+                type: "iteration-force-passed",
+                step: step.name,
+                iteration: item.id,
+                attempt: iterLoopResult.attempts,
+                score: iterLoopResult.finalScore,
+                msg: `force-pass: target=${iterTarget} actual=${iterLoopResult.finalScore}`,
+              });
+            }
+
+            const iterBlock = checkRequestChangesBlock({
+              sprintDir,
+              step: step.name,
+              iteration: item.id,
+            });
+            if (iterBlock.blocked) {
+              const latestState = store.load();
+              if (latestState) {
+                latestState.failedAt = {
+                  step: step.name,
+                  stepIdx: i,
+                  score: iterLoopResult.finalScore,
+                  attempts: iterLoopResult.attempts,
+                  ts: new Date().toISOString(),
+                  reason: "convergence",
+                  iteration: item.id,
+                };
+                latestState.lastEventTs = latestState.failedAt.ts;
+                store.save(latestState);
+              }
+              store.emit({
+                type: "step-blocked",
+                step: step.name,
+                iteration: item.id,
+                msg: `open request-changes: ${iterBlock.blockingIds.join(",")}`,
+              });
+              store.emit({
+                type: "sprint-failed",
+                step: step.name,
+                msg: `blocked by open request-changes at ${step.name}/${item.id}: ${iterBlock.blockingIds.join(",")}`,
+              });
+              gitCommit(
+                ["."],
+                `chore(agentflow): sprint ${sprintId} blocked at ${step.name}/${item.id} (open RC: ${iterBlock.blockingIds.join(",")})`,
+                gitCwd,
+              );
+              gitTag(sprintFailedTagName(sprintId), gitCwd);
+              throw new Error(
+                `Step "${step.name}" iteration "${item.id}" blocked by ${iterBlock.blockingIds.length} open request-changes record(s): ` +
+                  `${iterBlock.blockingIds.join(", ")}. ` +
+                  `Resolve via \`ag resolve <sprintDir> --id <fb-id>\` or supersede with ` +
+                  `\`ag force-pass <sprintDir> --step ${step.name} --iter ${item.id}\`, then \`ag resume <sprintDir> --no-reset\`.`,
+              );
+            }
+
+            const iterFm: ArtifactFrontmatter = {
+              step: step.name,
+              sprint: sprintId,
+              score: iterLoopResult.finalScore,
+              attempts: iterLoopResult.attempts,
+              provider: iterResolved.produce,
+              generated_at: new Date().toISOString(),
+              iteration: item.id,
+              ...(iterForced ? { forced: true } : {}),
+            };
+            const iterArtifact: Artifact = { frontmatter: iterFm, body: iterLoopResult.finalOutput };
+            writeArtifact(join(iterDir, "output.md"), iterArtifact);
+            priorIterations[step.name]![item.id] = iterArtifact;
+
+            const latestState = store.load();
+            if (latestState) {
+              const existing = latestState.completedIterations ?? {};
+              const list = existing[step.name] ?? [];
+              if (!list.includes(item.id)) list.push(item.id);
+              latestState.completedIterations = { ...existing, [step.name]: list };
+              latestState.lastEventTs = new Date().toISOString();
+              store.save(latestState);
+              state.completedIterations = latestState.completedIterations;
+              state.lastEventTs = latestState.lastEventTs;
+            }
+
+            gitCommit(
+              ["."],
+              `chore(agentflow): ${step.name}/${item.id} v${iterLoopResult.attempts} (score=${iterLoopResult.finalScore})`,
+              gitCwd,
+            );
+            gitTag(iterationTagName(sprintId, i, step.name, item.id), gitCwd);
+
+            store.emit({
+              type: "iteration-passed",
+              step: step.name,
+              iteration: item.id,
+              attempt: iterLoopResult.attempts,
+              score: iterLoopResult.finalScore,
+              tokens: iterLoopResult.totalTokens,
+              costUsd: iterLoopResult.totalCostUsd,
+            });
+
+            if (iterInjectFeedback && iterIngested.consumedIds.length > 0) {
+              store.emit({
+                type: "feedback-consumed",
+                step: step.name,
+                iteration: item.id,
+                msg: iterIngested.consumedIds.join(","),
+              });
+            }
+
+            stepTotalTokens += iterLoopResult.totalTokens;
+          } finally {
+            stateMutex.release();
+          }
         });
 
-        // Phase 7.4.y — per-iter feedback ingestion. Iter sees step-wide
-        // feedback (fb.iteration unset) plus its own iter-specific
-        // feedback (fb.iteration === item.id). consumeFeedback flag
-        // is step-level for this MVP (every iter inherits the same).
-        const iterIngested = ingestFeedback({
-          sprintDir,
-          step: step.name,
-          iteration: item.id,
-        });
-        const iterInjectFeedback =
-          effective.consumeFeedback && iterIngested.contextBlock.length > 0;
-        const iterHumanPrefix = iterInjectFeedback
-          ? `${iterIngested.contextBlock}\n---\n\n`
-          : "";
+        await Promise.all(tasks);
+      } else {
+        for (const item of items) {
+          if (completedIters.includes(item.id)) continue;
 
-        const itemPrompt = iterHumanPrefix + fe.producePrompt(ctx, item);
-        const itemRubric = iterHumanPrefix + (
-          typeof fe.rubric === "function" ? fe.rubric(ctx, item) : fe.rubric
-        );
-        const reviewsDir = join(iterDir, "reviews");
-        counters = { produce: 0, review: 0, fix: 0 };
-
-        let iterLoopResult;
-        try {
-          iterLoopResult = await qualityLoop({
-            producePrompt: itemPrompt,
-            reviewPromptFor: (out) => buildReviewPrompt(itemRubric, out),
-            fixPromptFor: (out, rev) => buildFixPrompt(itemRubric, out, rev),
-            parseScore: defaultParseScore,
-            targetScore: iterTarget,
-            maxRepeat: iterMaxRepeat,
-            onPhase: makeOnPhase(reviewsDir, iterResolved, item.id),
-            preReview: step.preReview
-              ? (output: string) => step.preReview!(ctx, output)
-              : undefined,
-            ...iterRunners,
-          });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          state.failedAt = {
-            step: step.name,
-            stepIdx: i,
-            score: 0,
-            attempts: 0,
-            ts: new Date().toISOString(),
-            reason: "runtime",
-            errorMessage: message,
-            iteration: item.id,
-          };
-          state.lastEventTs = state.failedAt.ts;
+          const iterDir = join(stepDir, item.id);
+          mkdirSync(iterDir, { recursive: true });
+          state.currentIteration = item.id;
           store.save(state);
+
+          const iterOverride = resolveItemOverride(fe, item, ctx);
+          const iterRunnersBundle = iterOverride
+            ? buildRunners(
+                produceProvider, reviewProvider, fixProvider,
+                produceOptions, reviewOptions, fixOptions,
+                iterOverride,
+                effectiveConfig.policy,
+              )
+            : stepDefault;
+          const iterRunners = iterRunnersBundle.runners;
+          const iterResolved = iterRunnersBundle.resolved;
+
           store.emit({
-            type: "iteration-failed",
+            type: "iteration-started",
             step: step.name,
             iteration: item.id,
-            msg: `runtime: ${message}`,
+            ...(iterOverride ? { providerOverride: formatProviderOverride(iterOverride) } : {}),
           });
-          store.emit({ type: "sprint-failed", step: step.name, msg: message });
-          gitCommit(
-            ["."],
-            `chore(agentflow): sprint ${sprintId} crashed at ${step.name}/${item.id} (${message})`,
-            gitCwd,
+
+          const iterIngested = ingestFeedback({
+            sprintDir,
+            step: step.name,
+            iteration: item.id,
+          });
+          const iterInjectFeedback =
+            effective.consumeFeedback && iterIngested.contextBlock.length > 0;
+          const iterHumanPrefix = iterInjectFeedback
+            ? `${iterIngested.contextBlock}\n---\n\n`
+            : "";
+
+          const itemPrompt = iterHumanPrefix + fe.producePrompt(ctx, item);
+          const itemRubric = iterHumanPrefix + (
+            typeof fe.rubric === "function" ? fe.rubric(ctx, item) : fe.rubric
           );
-          gitTag(sprintFailedTagName(sprintId), gitCwd);
-          throw err;
-        }
+          const reviewsDir = join(iterDir, "reviews");
+          counters = { produce: 0, review: 0, fix: 0 };
 
-        let iterForced = false;
-        if (!iterLoopResult.passed) {
-          store.emit({
-            type: "iteration-failed",
-            step: step.name,
-            iteration: item.id,
-            attempt: iterLoopResult.attempts,
-            score: iterLoopResult.finalScore,
-            msg: `target=${iterTarget} maxRepeat=${iterMaxRepeat}`,
-          });
+          let iterLoopResult;
+          try {
+            iterLoopResult = await qualityLoop({
+              producePrompt: itemPrompt,
+              reviewPromptFor: (out) => buildReviewPrompt(itemRubric, out),
+              fixPromptFor: (out, rev) => buildFixPrompt(itemRubric, out, rev),
+              parseScore: defaultParseScore,
+              targetScore: iterTarget,
+              maxRepeat: iterMaxRepeat,
+              onPhase: makeOnPhase(reviewsDir, iterResolved, item.id),
+              preReview: step.preReview
+                ? (output: string) => step.preReview!(ctx, output)
+                : undefined,
+              ...iterRunners,
+            });
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            state.failedAt = {
+              step: step.name,
+              stepIdx: i,
+              score: 0,
+              attempts: 0,
+              ts: new Date().toISOString(),
+              reason: "runtime",
+              errorMessage: message,
+              iteration: item.id,
+            };
+            state.lastEventTs = state.failedAt.ts;
+            store.save(state);
+            store.emit({
+              type: "iteration-failed",
+              step: step.name,
+              iteration: item.id,
+              msg: `runtime: ${message}`,
+            });
+            store.emit({ type: "sprint-failed", step: step.name, msg: message });
+            gitCommit(
+              ["."],
+              `chore(agentflow): sprint ${sprintId} crashed at ${step.name}/${item.id} (${message})`,
+              gitCwd,
+            );
+            gitTag(sprintFailedTagName(sprintId), gitCwd);
+            throw err;
+          }
 
-          const decision: MaxRepeatDecision = onMaxRepeat
-            ? await onMaxRepeat({
+          let iterForced = false;
+          if (!iterLoopResult.passed) {
+            store.emit({
+              type: "iteration-failed",
+              step: step.name,
+              iteration: item.id,
+              attempt: iterLoopResult.attempts,
+              score: iterLoopResult.finalScore,
+              msg: `target=${iterTarget} maxRepeat=${iterMaxRepeat}`,
+            });
+
+            const decision: MaxRepeatDecision = onMaxRepeat
+              ? await onMaxRepeat({
+                  step: step.name,
+                  stepIdx: i,
+                  iteration: item.id,
+                  finalScore: iterLoopResult.finalScore,
+                  targetScore: iterTarget,
+                  attempts: iterLoopResult.attempts,
+                  finalOutput: iterLoopResult.finalOutput,
+                })
+              : "abort";
+
+            if (decision === "abort") {
+              state.failedAt = {
                 step: step.name,
                 stepIdx: i,
-                iteration: item.id,
-                finalScore: iterLoopResult.finalScore,
-                targetScore: iterTarget,
+                score: iterLoopResult.finalScore,
                 attempts: iterLoopResult.attempts,
-                finalOutput: iterLoopResult.finalOutput,
-              })
-            : "abort";
+                ts: new Date().toISOString(),
+                reason: "convergence",
+                iteration: item.id,
+              };
+              state.lastEventTs = state.failedAt.ts;
+              store.save(state);
+              store.emit({ type: "sprint-failed", step: step.name });
+              gitCommit(
+                ["."],
+                `chore(agentflow): sprint ${sprintId} failed at ${step.name}/${item.id} (score=${iterLoopResult.finalScore})`,
+                gitCwd,
+              );
+              gitTag(sprintFailedTagName(sprintId), gitCwd);
+              throw new Error(
+                `Step "${step.name}" iteration "${item.id}" failed: score=${iterLoopResult.finalScore} after ${iterLoopResult.attempts} attempts (target=${iterTarget}).`,
+              );
+            }
 
-          if (decision === "abort") {
+            iterForced = true;
+            store.emit({
+              type: "iteration-force-passed",
+              step: step.name,
+              iteration: item.id,
+              attempt: iterLoopResult.attempts,
+              score: iterLoopResult.finalScore,
+              msg: `force-pass: target=${iterTarget} actual=${iterLoopResult.finalScore}`,
+            });
+          }
+
+          const iterBlock = checkRequestChangesBlock({
+            sprintDir,
+            step: step.name,
+            iteration: item.id,
+          });
+          if (iterBlock.blocked) {
             state.failedAt = {
               step: step.name,
               stepIdx: i,
@@ -712,127 +1055,79 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
             };
             state.lastEventTs = state.failedAt.ts;
             store.save(state);
-            store.emit({ type: "sprint-failed", step: step.name });
+            store.emit({
+              type: "step-blocked",
+              step: step.name,
+              iteration: item.id,
+              msg: `open request-changes: ${iterBlock.blockingIds.join(",")}`,
+            });
+            store.emit({
+              type: "sprint-failed",
+              step: step.name,
+              msg: `blocked by open request-changes at ${step.name}/${item.id}: ${iterBlock.blockingIds.join(",")}`,
+            });
             gitCommit(
               ["."],
-              `chore(agentflow): sprint ${sprintId} failed at ${step.name}/${item.id} (score=${iterLoopResult.finalScore})`,
+              `chore(agentflow): sprint ${sprintId} blocked at ${step.name}/${item.id} (open RC: ${iterBlock.blockingIds.join(",")})`,
               gitCwd,
             );
             gitTag(sprintFailedTagName(sprintId), gitCwd);
             throw new Error(
-              `Step "${step.name}" iteration "${item.id}" failed: score=${iterLoopResult.finalScore} after ${iterLoopResult.attempts} attempts (target=${iterTarget}).`,
+              `Step "${step.name}" iteration "${item.id}" blocked by ${iterBlock.blockingIds.length} open request-changes record(s): ` +
+                `${iterBlock.blockingIds.join(", ")}. ` +
+                `Resolve via \`ag resolve <sprintDir> --id <fb-id>\` or supersede with \`ag force-pass <sprintDir> --step ${step.name} --iter ${item.id}\`, then \`ag resume <sprintDir> --no-reset\`.`,
             );
           }
 
-          iterForced = true;
+          const iterFm: ArtifactFrontmatter = {
+            step: step.name,
+            sprint: sprintId,
+            score: iterLoopResult.finalScore,
+            attempts: iterLoopResult.attempts,
+            provider: iterResolved.produce,
+            generated_at: new Date().toISOString(),
+            iteration: item.id,
+            ...(iterForced ? { forced: true } : {}),
+          };
+          const iterArtifact: Artifact = { frontmatter: iterFm, body: iterLoopResult.finalOutput };
+          writeArtifact(join(iterDir, "output.md"), iterArtifact);
+          priorIterations[step.name]![item.id] = iterArtifact;
+
+          const existing = state.completedIterations ?? {};
+          const list = existing[step.name] ?? [];
+          if (!list.includes(item.id)) list.push(item.id);
+          state.completedIterations = { ...existing, [step.name]: list };
+          state.lastEventTs = new Date().toISOString();
+          store.save(state);
+
+          gitCommit(
+            ["."],
+            `chore(agentflow): ${step.name}/${item.id} v${iterLoopResult.attempts} (score=${iterLoopResult.finalScore})`,
+            gitCwd,
+          );
+          gitTag(iterationTagName(sprintId, i, step.name, item.id), gitCwd);
+
           store.emit({
-            type: "iteration-force-passed",
+            type: "iteration-passed",
             step: step.name,
             iteration: item.id,
             attempt: iterLoopResult.attempts,
             score: iterLoopResult.finalScore,
-            msg: `force-pass: target=${iterTarget} actual=${iterLoopResult.finalScore}`,
+            tokens: iterLoopResult.totalTokens,
+            costUsd: iterLoopResult.totalCostUsd,
           });
+
+          if (iterInjectFeedback && iterIngested.consumedIds.length > 0) {
+            store.emit({
+              type: "feedback-consumed",
+              step: step.name,
+              iteration: item.id,
+              msg: iterIngested.consumedIds.join(","),
+            });
+          }
+
+          stepTotalTokens += iterLoopResult.totalTokens;
         }
-
-        // Phase 7.4.y — iter-level RC gate. Re-read AFTER the Quality
-        // Loop succeeded (PM may have resolved or filed a force-pass
-        // during the run). Block is strict-iter: only RCs targeting
-        // this iter halt it (step-wide RCs land in common-finalisation
-        // for the aggregate instead).
-        const iterBlock = checkRequestChangesBlock({
-          sprintDir,
-          step: step.name,
-          iteration: item.id,
-        });
-        if (iterBlock.blocked) {
-          state.failedAt = {
-            step: step.name,
-            stepIdx: i,
-            score: iterLoopResult.finalScore,
-            attempts: iterLoopResult.attempts,
-            ts: new Date().toISOString(),
-            reason: "convergence",
-            iteration: item.id,
-          };
-          state.lastEventTs = state.failedAt.ts;
-          store.save(state);
-          store.emit({
-            type: "step-blocked",
-            step: step.name,
-            iteration: item.id,
-            msg: `open request-changes: ${iterBlock.blockingIds.join(",")}`,
-          });
-          store.emit({
-            type: "sprint-failed",
-            step: step.name,
-            msg: `blocked by open request-changes at ${step.name}/${item.id}: ${iterBlock.blockingIds.join(",")}`,
-          });
-          gitCommit(
-            ["."],
-            `chore(agentflow): sprint ${sprintId} blocked at ${step.name}/${item.id} (open RC: ${iterBlock.blockingIds.join(",")})`,
-            gitCwd,
-          );
-          gitTag(sprintFailedTagName(sprintId), gitCwd);
-          throw new Error(
-            `Step "${step.name}" iteration "${item.id}" blocked by ${iterBlock.blockingIds.length} open request-changes record(s): ` +
-              `${iterBlock.blockingIds.join(", ")}. ` +
-              `Resolve via \`ag resolve <sprintDir> --id <fb-id>\` or supersede with ` +
-              `\`ag force-pass <sprintDir> --step ${step.name} --iter ${item.id}\`, then \`ag resume <sprintDir> --no-reset\`.`,
-          );
-        }
-
-        const iterFm: ArtifactFrontmatter = {
-          step: step.name,
-          sprint: sprintId,
-          score: iterLoopResult.finalScore,
-          attempts: iterLoopResult.attempts,
-          // Record the EFFECTIVE produce provider (after per-iter override),
-          // not the step default — otherwise web UI / replay mis-label which
-          // model actually authored this iter.
-          provider: iterResolved.produce,
-          generated_at: new Date().toISOString(),
-          iteration: item.id,
-          ...(iterForced ? { forced: true } : {}),
-        };
-        const iterArtifact: Artifact = { frontmatter: iterFm, body: iterLoopResult.finalOutput };
-        writeArtifact(join(iterDir, "output.md"), iterArtifact);
-        priorIterations[step.name]![item.id] = iterArtifact;
-
-        const existing = state.completedIterations ?? {};
-        const list = existing[step.name] ?? [];
-        if (!list.includes(item.id)) list.push(item.id);
-        state.completedIterations = { ...existing, [step.name]: list };
-        state.lastEventTs = new Date().toISOString();
-        store.save(state);
-
-        gitCommit(
-          ["."],
-          `chore(agentflow): ${step.name}/${item.id} v${iterLoopResult.attempts} (score=${iterLoopResult.finalScore})`,
-          gitCwd,
-        );
-        gitTag(iterationTagName(sprintId, i, step.name, item.id), gitCwd);
-
-        store.emit({
-          type: "iteration-passed",
-          step: step.name,
-          iteration: item.id,
-          attempt: iterLoopResult.attempts,
-          score: iterLoopResult.finalScore,
-          tokens: iterLoopResult.totalTokens,
-          costUsd: iterLoopResult.totalCostUsd,
-        });
-
-        if (iterInjectFeedback && iterIngested.consumedIds.length > 0) {
-          store.emit({
-            type: "feedback-consumed",
-            step: step.name,
-            iteration: item.id,
-            msg: iterIngested.consumedIds.join(","),
-          });
-        }
-
-        stepTotalTokens += iterLoopResult.totalTokens;
       }
 
       // Build aggregate index artifact.
@@ -1194,6 +1489,24 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
   };
   writeFileSync(join(sprintDir, "summary.json"), JSON.stringify(summary, null, 2), "utf-8");
   writeFileSync(join(sprintDir, "carry-over.json"), JSON.stringify(readiness, null, 2), "utf-8");
+
+  try {
+    const sprintIndex = new SprintIndex();
+    sprintIndex.record({
+      sprintId,
+      recipeName: recipe.name,
+      sprintDir,
+      completedAt: summary.completedAt,
+      passed: true,
+      totalTokens: summary.totalTokens,
+      totalCostUsd: summary.totalCostUsd,
+      readiness: summary.readiness,
+      reviewVerdict: summary.reviewVerdict,
+      blockingCount: summary.blockingCount,
+    });
+  } catch (err) {
+    console.error(`Warning: Failed to record sprint outcome to index: ${(err as Error).message}`);
+  }
 
   gitCommit(
     ["."],

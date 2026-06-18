@@ -89,6 +89,8 @@ export interface ForEachConfig {
   /** Optional per-iteration overrides — fall back to step.targetScore / maxRepeat. */
   targetScore?: number;
   maxRepeat?: number;
+  /** Maximum number of iterations to execute in parallel (A-4). Unset or 1 falls back to sequential. */
+  maxConcurrent?: number;
   /**
    * Static per-id pin. Wins over `providerForItem` when both match.
    * Serializable — recipe factories that accept user input here should
@@ -244,6 +246,11 @@ export interface StepDef {
     ctx: StepContext,
     output: string,
   ) => string | PreReviewResult | Promise<string | PreReviewResult>;
+  /**
+   * Optional condition function. The engine evaluates this before running the
+   * step. If it returns false, the step is skipped.
+   */
+  condition?: (ctx: StepContext) => boolean;
 }
 
 export interface Recipe {
