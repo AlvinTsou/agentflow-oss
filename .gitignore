@@ -17,6 +17,7 @@ sprints/
 tasks/
 logs/
 cache/
+resource/
 
 # Environments and local files
 .env
