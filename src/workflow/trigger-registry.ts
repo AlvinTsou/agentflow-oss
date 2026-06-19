@@ -1,4 +1,4 @@
-import { watch, existsSync, mkdirSync, type FSWatcher } from "node:fs";
+import { watch, existsSync, mkdirSync, statSync, type FSWatcher } from "node:fs";
 import { resolve, join, dirname, basename } from "node:path";
 
 export interface TriggerDef {
@@ -119,6 +119,49 @@ export class TriggerRunner {
     }
   }
 
+  private invokeTrigger(
+    trig: TriggerDef,
+    onTrigger: (trigger: TriggerDef) => void | Promise<void>,
+    message: string,
+  ): void {
+    console.log(message);
+    if (this.dryRun) {
+      console.log(`[TriggerRunner] [Dry-Run] Skipped executing recipe "${trig.recipe}"`);
+    } else {
+      Promise.resolve(onTrigger(trig)).catch((err) => {
+        console.error(`[TriggerRunner] Error executing trigger "${trig.name}":`, err);
+      });
+    }
+  }
+
+  private mtimeMs(path: string): number {
+    try {
+      return statSync(path).mtimeMs;
+    } catch {
+      return 0;
+    }
+  }
+
+  private startPolling(
+    key: string,
+    watchedPath: string,
+    trig: TriggerDef,
+    onTrigger: (trigger: TriggerDef) => void | Promise<void>,
+    message: string,
+  ): void {
+    if (this.activeTimers.has(key)) return;
+
+    let lastMtime = this.mtimeMs(watchedPath);
+    const timer = setInterval(() => {
+      const nextMtime = this.mtimeMs(watchedPath);
+      if (nextMtime !== lastMtime) {
+        lastMtime = nextMtime;
+        this.invokeTrigger(trig, onTrigger, message);
+      }
+    }, 100);
+    this.activeTimers.set(key, timer);
+  }
+
   private scheduleFsWatch(
     trig: TriggerDef,
     onTrigger: (trigger: TriggerDef) => void | Promise<void>,
@@ -135,15 +178,23 @@ export class TriggerRunner {
       const watcher = watch(targetPath, { recursive: true }, (eventType, filename) => {
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-          console.log(`[TriggerRunner] fs-watch event "${eventType}" on "${filename}" triggered "${trig.name}"`);
-          if (this.dryRun) {
-            console.log(`[TriggerRunner] [Dry-Run] Skipped executing recipe "${trig.recipe}"`);
-          } else {
-            Promise.resolve(onTrigger(trig)).catch((err) => {
-              console.error(`[TriggerRunner] Error executing trigger "${trig.name}":`, err);
-            });
-          }
+          this.invokeTrigger(
+            trig,
+            onTrigger,
+            `[TriggerRunner] fs-watch event "${eventType}" on "${filename}" triggered "${trig.name}"`,
+          );
         }, 100); // 100ms debounce
+      });
+      watcher.on("error", (err) => {
+        console.error(`[TriggerRunner] fs-watch error for "${trig.name}":`, err);
+        watcher.close();
+        this.startPolling(
+          `${trig.name}:fs-watch-poll`,
+          targetPath,
+          trig,
+          onTrigger,
+          `[TriggerRunner] fs-watch polling detected change triggered "${trig.name}"`,
+        );
       });
 
       this.activeWatchers.push(watcher);
@@ -172,16 +223,24 @@ export class TriggerRunner {
         if (filename === basename(refPath)) {
           if (debounceTimer) clearTimeout(debounceTimer);
           debounceTimer = setTimeout(() => {
-            console.log(`[TriggerRunner] git-hook ref change detected for "${ref}" triggered "${trig.name}"`);
-            if (this.dryRun) {
-              console.log(`[TriggerRunner] [Dry-Run] Skipped executing recipe "${trig.recipe}"`);
-            } else {
-              Promise.resolve(onTrigger(trig)).catch((err) => {
-                console.error(`[TriggerRunner] Error executing trigger "${trig.name}":`, err);
-              });
-            }
+            this.invokeTrigger(
+              trig,
+              onTrigger,
+              `[TriggerRunner] git-hook ref change detected for "${ref}" triggered "${trig.name}"`,
+            );
           }, 100);
         }
+      });
+      watcher.on("error", (err) => {
+        console.error(`[TriggerRunner] git-hook watch error for "${trig.name}":`, err);
+        watcher.close();
+        this.startPolling(
+          `${trig.name}:git-hook-poll`,
+          refPath,
+          trig,
+          onTrigger,
+          `[TriggerRunner] git-hook polling detected ref change for "${ref}" triggered "${trig.name}"`,
+        );
       });
 
       this.activeWatchers.push(watcher);

@@ -82,6 +82,14 @@ This release incorporates autonomy and event-driven orchestration from Loop Engi
 - **Conditional Step Activation (A-3):** Allow steps to skip execution dynamically based on step-level condition functions.
 - **Parallel forEach Execution (A-4):** Support concurrent iteration executions bounded by a counting semaphore configuration.
 
+## v1.6 -- API Design Review Workflow (Completed)
+
+This release adds an init-supported recipe for API standards review.
+
+- **API design review recipe:** Expose an `api-design-review` JSON recipe for auditing HTTP routes, payload schemas, query parameters, RESTful standards, naming consistency, and backward compatibility.
+- **Offline validation fixtures:** Cover clean REST API, breaking change, and non-standard naming scenarios.
+- **Recipe registration:** Register the recipe with `ag init` and the recipe registry while keeping direct `ag run <recipe>` support limited to the core runnable recipes.
+
 ## Future
 
 These items are on the long-term radar but not yet scoped in detail.
@@ -101,7 +109,6 @@ and will not affect the CLI-first architecture.
 
 Community-contributed recipes for specialized workflows:
 
-- API design review.
 - Database migration planning.
 - Test coverage gap analysis.
 - Documentation generation from code.

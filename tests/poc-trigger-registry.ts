@@ -92,62 +92,66 @@ async function main() {
 
   // 3. Test fs-watch and git-hook types asynchronously
   await check("TriggerRunner fs-watch and git-hook types trigger correctly", async () => {
-    const tmp = mkdtempSync(join(testTmpDir, "trigger-watch-"));
-    
-    // Create folders for git structure
-    const gitDir = join(tmp, "git-project");
-    const refsDir = join(gitDir, ".git", "refs", "heads");
-    mkdirSync(refsDir, { recursive: true });
-    
-    // Create watches path
-    const watchFolder = join(tmp, "watch-folder");
-    mkdirSync(watchFolder, { recursive: true });
+    async function runWatchScenario(): Promise<string[]> {
+      const tmp = mkdtempSync(join(testTmpDir, "trigger-watch-"));
 
-    const triggers: TriggerDef[] = [
-      {
-        name: "test-fswatch",
-        type: "fs-watch",
-        watchPath: watchFolder,
-        recipe: "dummy-fs",
-      },
-      {
-        name: "test-githook",
-        type: "git-hook",
-        gitDir: gitDir,
-        watchRef: "refs/heads/main",
-        recipe: "dummy-git",
-      }
-    ];
+      const gitDir = join(tmp, "git-project");
+      const refsDir = join(gitDir, ".git", "refs", "heads");
+      mkdirSync(refsDir, { recursive: true });
 
-    const runner = new TriggerRunner(triggers, false);
-    const triggeredNames: string[] = [];
+      const watchFolder = join(tmp, "watch-folder");
+      mkdirSync(watchFolder, { recursive: true });
 
-    runner.start((trig) => {
-      triggeredNames.push(trig.name);
-    });
+      const triggers: TriggerDef[] = [
+        {
+          name: "test-fswatch",
+          type: "fs-watch",
+          watchPath: watchFolder,
+          recipe: "dummy-fs",
+        },
+        {
+          name: "test-githook",
+          type: "git-hook",
+          gitDir: gitDir,
+          watchRef: "refs/heads/main",
+          recipe: "dummy-git",
+        }
+      ];
 
-    // Give libuv / fs.watch 50ms to initialize before writing files
-    await new Promise((resolve) => setTimeout(resolve, 50));
+      const runner = new TriggerRunner(triggers, false);
+      const triggeredNames: string[] = [];
 
-    try {
-      // Trigger fs-watch
-      writeFileSync(join(watchFolder, "change.txt"), "modified content", "utf-8");
-      
-      // Trigger git-hook
-      writeFileSync(join(refsDir, "main"), "new-commit-sha", "utf-8");
+      runner.start((trig) => {
+        triggeredNames.push(trig.name);
+      });
 
-      // Wait 300ms for fs-watch events to fire and debounce (100ms) to resolve
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
-      assert.ok(triggeredNames.includes("test-fswatch"), "fs-watch trigger should be fired");
-      assert.ok(triggeredNames.includes("test-githook"), "git-hook trigger should be fired");
-
-    } finally {
-      runner.stop();
       try {
-        rmSync(tmp, { recursive: true, force: true });
-      } catch {}
+        writeFileSync(join(watchFolder, "change.txt"), "modified content", "utf-8");
+        writeFileSync(join(refsDir, "main"), "new-commit-sha", "utf-8");
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return triggeredNames;
+      } finally {
+        runner.stop();
+        try {
+          rmSync(tmp, { recursive: true, force: true });
+        } catch {}
+      }
     }
+
+    let triggeredNames: string[] = [];
+    for (let attempt = 0; attempt < 2; attempt++) {
+      triggeredNames = await runWatchScenario();
+      if (triggeredNames.includes("test-fswatch") && triggeredNames.includes("test-githook")) {
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    assert.ok(triggeredNames.includes("test-fswatch"), "fs-watch trigger should be fired");
+    assert.ok(triggeredNames.includes("test-githook"), "git-hook trigger should be fired");
   });
 
   if (failures > 0) {

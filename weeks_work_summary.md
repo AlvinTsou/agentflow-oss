@@ -6,7 +6,8 @@ Repository: `agentflow-oss`
 ## Current Repo State
 
 - Branch: `main`
-- Working tree: contains modified scripts, test fixtures, proposals, and this updated summary.
+- Baseline before this documentation refresh: clean working tree.
+- HEAD: `64cea4c` (`feat(workflow): implement loop engineering phase a features and add tests`).
 - Public Pages: `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - Latest remote CI runs on `main`: green.
 
@@ -22,7 +23,7 @@ git diff --check
 Validation details:
 
 - TypeScript build passed through `pnpm run build` (tsc --noEmit).
-- All offline test suites passed: 8 test files, 8 passing test runs, 0 failures.
+- All offline test suites passed: 13 test files, 13 passing test runs, 0 failures.
 - Secret and privacy scan passed with no findings.
 - Whitespace validation (`git diff --check`) passed.
 

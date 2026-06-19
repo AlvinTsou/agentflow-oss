@@ -2,7 +2,7 @@
 
 This document consolidates the weekly active maintenance plans for `agentflow-oss` and tracks the current implementation status.
 
-## Current Verification Status (As of 2026-06-12)
+## Current Verification Status (As of 2026-06-19)
 
 - **GitHub Pages**: **Live**. Repository Pages is enabled, the configured source is `main:/docs`, the Pages API reports `built`, HTTPS is enforced, and `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - **Latest GitHub Actions Check**: **Green**. Recent `CI` and `pages-build-deployment` runs on `main` completed successfully.
@@ -10,7 +10,9 @@ This document consolidates the weekly active maintenance plans for `agentflow-os
 - **Week 2 / Week 3 Work**: **Completed**. Release-readiness recipe integration, offline fixtures, custom redaction policy behavior, documentation, and roadmap synchronization are represented in the repo maintenance logs.
 - **Week 4 Plan**: **Completed**. PR review recipe proposal, release-readiness hardening, route audit replay formatting, status CLI layout improvements, and custom redaction config-loader integration are complete.
 - **Week 5 Plan**: **Completed**. The `pr-review` recipe is defined, exposed through init, covered by offline tests and fixtures, and wired to git diff context ingestion.
-- **Next Maintenance Focus**: **Week 6**. Keep Pages accurate after the multilingual launch, add a security review recipe proposal, tighten PR review docs, and maintain green offline verification.
+- **Week 6 Plan**: **Completed**. Pages accuracy, PR review documentation, route audit examples, security review scoping, and weekly verification are recorded in the Week 6 maintenance log.
+- **Week 7 Work**: **Completed**. Security review hardening, `api-design-review` recipe initialization, conditional step execution, trigger registry support, sprint outcome indexing, and parallel `forEach` execution are recorded in the Week 7 maintenance log and covered by offline tests.
+- **Next Maintenance Focus**: **Week 8 / Phase B Planning**. Scope the next Loop Engineering follow-up before implementation, with `Streaming Checkpoint (B-5)` and `Self-Feeding Loops (B-6)` as the highest-value candidates.
 
 ---
 
