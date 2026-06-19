@@ -7,7 +7,7 @@ Repository: `agentflow-oss`
 
 - Branch: `main`
 - Baseline before this documentation refresh: clean working tree.
-- HEAD: `64cea4c` (`feat(workflow): implement loop engineering phase a features and add tests`).
+- Latest synchronized commit: `7c1673c` (`docs: sync week schedule and harden trigger watch tests`).
 - Public Pages: `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - Latest remote CI runs on `main`: green.
 
@@ -53,9 +53,10 @@ Validation details:
   - `non-standard-naming`
 - Held off wiring the recipe into the engine/registry to strictly follow the schedule: "proposal first, do not rush implementation".
 
-### Day 7 - Weekly Closeout
+### Day 7 - Weekly Closeout And Correction
 
-- Aligned `ROADMAP.md` (v1.4 Security Review completed, Future Additional Recipes including API design review).
+- Aligned `ROADMAP.md` with the then-current state: v1.4 Security Review completed and API design review still listed as a future additional recipe.
+- Subsequent correction: `api-design-review` is now implemented as an init-supported recipe and recorded as `v1.6 -- API Design Review Workflow (Completed)` in `ROADMAP.md`.
 - Synchronized `docs/cli-reference.md` command documentation.
 - Confirmed code compilation and full offline/secret test suite pass.
 
