@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { execFileSync } from "node:child_process";
 import { qualityLoop, type PhaseEvent } from "./quality-loop.js";
 import { StateStore } from "./state-store.js";
@@ -41,6 +41,7 @@ import {
 } from "./readiness.js";
 import { SprintIndex } from "./sprint-index.js";
 import { Semaphore } from "../util/semaphore.js";
+import { appendStreamingCheckpoint } from "./streaming-checkpoint.js";
 
 /**
  * Resolved provider names for one phase-loop unit (a single-pass step OR
@@ -556,6 +557,20 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
           : ev.phase === "fix" ? resolved.fix
           : resolved.produce;
       recordCall(meter, providerName, ev.step);
+      appendStreamingCheckpoint(sprintDir, {
+        sprintId,
+        step: step.name,
+        iteration,
+        phase: ev.phase,
+        attempt: ev.attempt,
+        provider: providerName,
+        score: ev.score,
+        tokens: ev.step.totalTokens,
+        costUsd: ev.step.costUsd,
+        durationMs: ev.step.durationMs,
+        artifactPath: relative(sprintDir, file),
+        output: ev.step.output,
+      });
       store.emit({
         type: "phase",
         step: step.name,

@@ -90,6 +90,14 @@ This release adds an init-supported recipe for API standards review.
 - **Offline validation fixtures:** Cover clean REST API, breaking change, and non-standard naming scenarios.
 - **Recipe registration:** Register the recipe with `ag init` and the recipe registry while keeping direct `ag run <recipe>` support limited to the core runnable recipes.
 
+## v1.7 -- Management Checkpoint Foundation (In Progress)
+
+This release starts the management-platform path without introducing a web server.
+
+- **Streaming checkpoint records:** Append phase-level Quality Loop checkpoints to `streaming-checkpoints.jsonl`, including step, iteration, phase, attempt, provider, tokens, cost, artifact path, preview text, and output hash.
+- **Management API contract:** Define the future local dashboard data shapes for sprint summaries, events, checkpoints, and control actions.
+- **Offline validation:** Cover checkpoint writing and reading with a mock sprint run.
+
 ## Future
 
 These items are on the long-term radar but not yet scoped in detail.
@@ -116,6 +124,7 @@ Community-contributed recipes for specialized workflows:
 
 ### Engine Extensions
 
+- **Fine-grained streaming token checkpoints** for providers that expose token deltas.
 - **Parallel step execution** for independent steps within a recipe.
 - **Remote state store** for team-based sprint management.
 - **Webhook notifications** for sprint state transitions.

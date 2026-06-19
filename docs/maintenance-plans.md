@@ -12,7 +12,8 @@ This document consolidates the weekly active maintenance plans for `agentflow-os
 - **Week 5 Plan**: **Completed**. The `pr-review` recipe is defined, exposed through init, covered by offline tests and fixtures, and wired to git diff context ingestion.
 - **Week 6 Plan**: **Completed**. Pages accuracy, PR review documentation, route audit examples, security review scoping, and weekly verification are recorded in the Week 6 maintenance log.
 - **Week 7 Work**: **Completed**. Security review hardening, `api-design-review` recipe initialization, conditional step execution, trigger registry support, sprint outcome indexing, and parallel `forEach` execution are recorded in the Week 7 maintenance log and covered by offline tests.
-- **Next Maintenance Focus**: **Week 8 / Phase B Planning**. Scope the next Loop Engineering follow-up before implementation, with `Streaming Checkpoint (B-5)` and `Self-Feeding Loops (B-6)` as the highest-value candidates.
+- **Week 8 Work**: **Started**. The first Phase B slice adds a phase-level streaming checkpoint foundation and management API data contract, without introducing a web server yet.
+- **Next Maintenance Focus**: **Week 8 / Phase B Continuation**. Extend checkpoint consumers and decide whether to continue into `Self-Feeding Loops (B-6)` or a minimal local management API reader.
 
 ---
 
