@@ -42,6 +42,14 @@ export interface QualityLoopConfig {
    * partially-applies StepContext when wiring this up.
    */
   preReview?: (output: string) => string | PreReviewResult | Promise<string | PreReviewResult>;
+  /** Optional checkpoint to seed the loop and resume from a specific phase/attempt */
+  seedCheckpoint?: {
+    phase: "produce" | "review" | "fix";
+    attempt: number;
+    output: string;
+    score?: number;
+    history: PhaseEvent[];
+  };
 }
 
 export interface PhaseEvent {
@@ -73,9 +81,40 @@ export async function qualityLoop(cfg: QualityLoopConfig): Promise<QualityLoopRe
   const reviewer = cfg.reviewer ?? runStep;
   const fixer = cfg.fixer ?? runStep;
 
-  const history: PhaseEvent[] = [];
+  const history: PhaseEvent[] = cfg.seedCheckpoint ? [...cfg.seedCheckpoint.history] : [];
   let totalTokens = 0;
   let totalCost = 0;
+
+  for (const ev of history) {
+    totalTokens += ev.step.totalTokens;
+    totalCost += ev.step.costUsd;
+  }
+
+  let attempt = 1;
+  let lastScore = 0;
+  let bestScore = 0;
+  let bestOutput = "";
+  let bestGuard: PreReviewResult | undefined;
+  let bestSet = false;
+
+  if (cfg.seedCheckpoint) {
+    for (const ev of history) {
+      if (ev.phase === "review" && ev.score !== undefined) {
+        const score = ev.score;
+        const prodEv = history.find(
+          (h) =>
+            (h.phase === "produce" && h.attempt === ev.attempt) ||
+            (h.phase === "fix" && h.attempt === ev.attempt)
+        );
+        const prodOutput = prodEv ? prodEv.step.output : (cfg.seedOutput ?? "");
+        if (!bestSet || score > bestScore) {
+          bestSet = true;
+          bestScore = score;
+          bestOutput = prodOutput;
+        }
+      }
+    }
+  }
 
   const record = async (ev: PhaseEvent) => {
     history.push(ev);
@@ -85,35 +124,86 @@ export async function qualityLoop(cfg: QualityLoopConfig): Promise<QualityLoopRe
   };
 
   let produce: StepResult;
-  if (cfg.seedOutput !== undefined) {
-    produce = {
-      output: cfg.seedOutput,
-      inputTokens: 0,
-      outputTokens: 0,
-      totalTokens: 0,
-      durationMs: 0,
-      costUsd: 0,
-    };
-  } else {
-    produce = await producer(cfg.producePrompt);
-    await record({ phase: "produce", attempt: 1, step: produce });
-  }
+  let review: StepResult | undefined;
 
-  let attempt = 1;
-  let lastScore = 0;
-  // Best-so-far retention: a fix loop can regress (e.g. dev/T6 saw 1 -> 6 ->
-  // 4), so when no attempt reaches targetScore we must return the
-  // highest-scoring artifact, not the last one. Track it as we go.
-  // Starts at 0 (not -1) so an empty loop (maxRepeat < 1) returns a sane
-  // score matching the pre-best-so-far behaviour. `bestSet` makes the FIRST
-  // scored attempt seed best-so-far unconditionally — otherwise a legitimate
-  // score-0 attempt (0 > 0 is false) would never record its output/guard,
-  // losing a contract-MISMATCH verdict. Subsequent attempts use strict `>`
-  // (first-highest-on-tie preserved).
-  let bestScore = 0;
-  let bestOutput = produce.output;
-  let bestGuard: PreReviewResult | undefined;
-  let bestSet = false;
+  if (cfg.seedCheckpoint) {
+    attempt = cfg.seedCheckpoint.attempt;
+    
+    if (cfg.seedCheckpoint.phase === "produce" || cfg.seedCheckpoint.phase === "fix") {
+      produce = {
+        output: cfg.seedCheckpoint.output,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        durationMs: 0,
+        costUsd: 0,
+      };
+      if (bestOutput === "") {
+        bestOutput = produce.output;
+      }
+    } else {
+      const lastProduceEv = history.find(
+        (h) =>
+          (h.phase === "produce" && h.attempt === attempt) ||
+          (h.phase === "fix" && h.attempt === attempt)
+      );
+      const lastProduceOutput = lastProduceEv ? lastProduceEv.step.output : "";
+      
+      produce = {
+        output: lastProduceOutput,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        durationMs: 0,
+        costUsd: 0,
+      };
+      if (bestOutput === "") {
+        bestOutput = lastProduceOutput;
+      }
+      
+      review = {
+        output: cfg.seedCheckpoint.output,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        durationMs: 0,
+        costUsd: 0,
+      };
+
+      if (attempt < maxRepeat) {
+        produce = await fixer(cfg.fixPromptFor(produce.output, review.output));
+        attempt++;
+        await record({ phase: "fix", attempt, step: produce });
+      } else {
+        return {
+          passed: false,
+          finalOutput: bestOutput,
+          finalScore: bestScore,
+          attempts: attempt,
+          totalTokens,
+          totalCostUsd: totalCost,
+          history,
+          finalGuard: bestGuard,
+        };
+      }
+    }
+  } else {
+    if (cfg.seedOutput !== undefined) {
+      produce = {
+        output: cfg.seedOutput,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        durationMs: 0,
+        costUsd: 0,
+      };
+      bestOutput = cfg.seedOutput;
+    } else {
+      produce = await producer(cfg.producePrompt);
+      await record({ phase: "produce", attempt: 1, step: produce });
+      bestOutput = produce.output;
+    }
+  }
 
   while (attempt <= maxRepeat) {
     const baseReviewPrompt = cfg.reviewPromptFor(produce.output);

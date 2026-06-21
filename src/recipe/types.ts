@@ -260,4 +260,9 @@ export interface Recipe {
   description: string;
   /** Ordered list of steps. Sprint runs each in order. */
   steps: StepDef[];
+  /** B-6 self-feeding default config */
+  selfFeeding?: {
+    enabled?: boolean;
+    maxFollowUps?: number;
+  };
 }

@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 
@@ -64,4 +64,97 @@ export function readStreamingCheckpoints(sprintDir: string): StreamingCheckpoint
     .split("\n")
     .filter((line) => line.trim().length > 0)
     .map((line) => JSON.parse(line) as StreamingCheckpoint);
+}
+
+export function truncateStreamingCheckpoints(
+  sprintDir: string,
+  recipe: { steps: { name: string }[] },
+  targetStepIdx: number,
+  keptIterations?: string[],
+): void {
+  const checkpoints = readStreamingCheckpoints(sprintDir);
+  if (checkpoints.length === 0) return;
+
+  const allowedSteps = new Set<string>();
+  for (let i = 0; i < targetStepIdx; i++) {
+    if (recipe.steps[i]) {
+      allowedSteps.add(recipe.steps[i]!.name);
+    }
+  }
+
+  const targetStepName = recipe.steps[targetStepIdx]?.name;
+  const keptIters = new Set(keptIterations ?? []);
+
+  const filtered = checkpoints.filter((cp) => {
+    if (allowedSteps.has(cp.step)) {
+      return true;
+    }
+    if (cp.step === targetStepName && cp.iteration && keptIters.has(cp.iteration)) {
+      return true;
+    }
+    return false;
+  });
+
+  const path = streamingCheckpointPath(sprintDir);
+  const content = filtered.map((c) => JSON.stringify(c)).join("\n") + (filtered.length > 0 ? "\n" : "");
+  writeFileSync(path, content, "utf-8");
+}
+
+export function reconstructHistoryFromCheckpoints(
+  sprintDir: string,
+  stepName: string,
+  iteration?: string,
+): {
+  history: any[];
+  latestCheckpoint?: any;
+} {
+  const checkpoints = readStreamingCheckpoints(sprintDir);
+  const stepCps = checkpoints.filter(
+    (cp) => cp.step === stepName && cp.iteration === iteration,
+  );
+
+  if (stepCps.length === 0) {
+    return { history: [] };
+  }
+
+  const history: any[] = [];
+  for (const cp of stepCps) {
+    let output = cp.outputPreview;
+    const fullPath = join(sprintDir, cp.artifactPath);
+    if (existsSync(fullPath)) {
+      try {
+        output = readFileSync(fullPath, "utf-8");
+      } catch {}
+    }
+    history.push({
+      phase: cp.phase,
+      attempt: cp.attempt,
+      score: cp.score,
+      step: {
+        output,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: cp.tokens,
+        costUsd: cp.costUsd,
+        durationMs: cp.durationMs,
+      },
+    });
+  }
+
+  const latestCp = stepCps[stepCps.length - 1]!;
+  let latestOutput = latestCp.outputPreview;
+  const latestFullPath = join(sprintDir, latestCp.artifactPath);
+  if (existsSync(latestFullPath)) {
+    try {
+      latestOutput = readFileSync(latestFullPath, "utf-8");
+    } catch {}
+  }
+
+  return {
+    history,
+    latestCheckpoint: {
+      ...latestCp,
+      output: latestOutput,
+    },
+  };
 }

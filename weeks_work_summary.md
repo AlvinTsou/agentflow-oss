@@ -1,13 +1,13 @@
 # Weekly Work Summary
 
-Date: 2026-06-18
+Date: 2026-06-21
 Repository: `agentflow-oss`
 
 ## Current Repo State
 
 - Branch: `main`
 - Baseline before this documentation refresh: clean working tree.
-- Latest synchronized commit: `7c1673c` (`docs: sync week schedule and harden trigger watch tests`).
+- Latest synchronized commit: `d240997` (`feat(workflow): implement loop engineering phase b features and update summary`).
 - Public Pages: `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - Latest remote CI runs on `main`: green.
 
@@ -23,7 +23,7 @@ git diff --check
 Validation details:
 
 - TypeScript build passed through `pnpm run build` (tsc --noEmit).
-- All offline test suites passed: 13 test files, 13 passing test runs, 0 failures.
+- All offline test suites passed: 14 test files, 14 passing test runs, 0 failures.
 - Secret and privacy scan passed with no findings.
 - Whitespace validation (`git diff --check`) passed.
 
@@ -75,7 +75,7 @@ autonomy concepts while preserving AgentFlow's engineering rigor.
 | A-3 | Conditional Step Activation | **Moderate** | ~0.5 day | `src/recipe/types.ts`, `sprint-engine.ts`, `ag-replay.ts` |
 | A-4 | Parallel forEach Execution | **Moderate** | ~3 days | `src/recipe/types.ts`, `sprint-engine.ts`, `src/util/semaphore.ts` [NEW] |
 
-### Phase B — Medium-Value, Medium-Risk (Target: week 3-4)
+### Phase B — Medium-Value, Medium-Risk (Completed)
 
 | ID | Feature | Gap Size | Effort | Key Files |
 |----|---------|----------|--------|-----------|
@@ -94,7 +94,7 @@ autonomy concepts while preserving AgentFlow's engineering rigor.
 1. **Trigger scope (A-1):** Start with cron-only or support all three (cron, fs-watch, git-hook) in v1?
 2. **Knowledge backend (A-2):** Flat JSONL (consistent with `state.json`) or SQLite for query flexibility?
 3. **Concurrency limit (A-4):** Default `maxConcurrent` value — 4 suggested, depends on API rate limits.
-4. **Self-feeding budget (B-6):** Hard cap on auto-generated follow-up sprints (e.g., max 3)?
+4. **Self-feeding budget (B-6):** Hard cap on auto-generated follow-up sprints (default 3, configurable in `agentflow.config.json` via `selfFeeding.maxFollowUps`).
 
 ---
 
@@ -129,6 +129,26 @@ We have successfully designed, implemented, and verified all Phase A items from 
 - Created `tests/poc-parallel-foreach.ts` to verify parallel execution and concurrency limit, and integrated it into `package.json` offline test suite.
 - Updated `ROADMAP.md` and CLI documentation reference for `daemon` command.
 - Verified all 13 test files and secret scan pass.
+
+---
+
+## Loop Engineering Phase B Implementation Summary (Completed)
+
+We have successfully designed, implemented, and verified all Phase B items from the Loop Engineering integration plan.
+
+### Streaming Checkpoint (B-5)
+- Implemented checkpoint pruning (`truncateStreamingCheckpoints`) and loop history reconstruction (`reconstructHistoryFromCheckpoints`) in `src/workflow/streaming-checkpoint.ts`.
+- Integrated checkpoint pruning into `src/workflow/resume.ts` on `resumeSprint` entry.
+- Updated `src/workflow/quality-loop.ts` to accept a `seedCheckpoint` option, allowing `qualityLoop` to reconstruct history, best output/score, and resume directly from a checkpointed attempt/phase.
+- Wired `sprint-engine.ts` to query and pass `seedCheckpoint` to `qualityLoop` for all step types (parallel forEach, serial forEach, and single-pass steps).
+- Verified in `tests/poc-streaming-checkpoint.ts`.
+
+### Self-Feeding Loops (B-6)
+- Created new `src/workflow/replan.ts` with `handleReplan` function to generate follow-up sprints with carry-overs injected and stripping old carry-overs.
+- Added type definitions for `selfFeeding` options in `src/recipe/types.ts` (`Recipe` interface) and validated/resolved it in `src/workflow/config-loader.ts`.
+- Wired `runSprint` in `src/workflow/sprint-engine.ts` to automatically trigger `handleReplan` and recursively call `runSprint` when a sprint is blocked and self-feeding is enabled.
+- Created `tests/poc-replan.ts` to verify end-to-end self-feeding loops, and registered it in `package.json`.
+- Verified all 14 test files and secret scan pass.
 
 Validation:
 

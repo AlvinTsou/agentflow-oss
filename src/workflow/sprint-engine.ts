@@ -41,7 +41,8 @@ import {
 } from "./readiness.js";
 import { SprintIndex } from "./sprint-index.js";
 import { Semaphore } from "../util/semaphore.js";
-import { appendStreamingCheckpoint } from "./streaming-checkpoint.js";
+import { appendStreamingCheckpoint, reconstructHistoryFromCheckpoints } from "./streaming-checkpoint.js";
+import { handleReplan } from "./replan.js";
 
 /**
  * Resolved provider names for one phase-loop unit (a single-pass step OR
@@ -682,6 +683,21 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
             );
             const reviewsDir = join(iterDir, "reviews");
 
+            const checkpointHistory = reconstructHistoryFromCheckpoints(
+              sprintDir,
+              step.name,
+              item.id,
+            );
+            const seedCheckpoint = checkpointHistory.latestCheckpoint
+              ? {
+                  phase: checkpointHistory.latestCheckpoint.phase,
+                  attempt: checkpointHistory.latestCheckpoint.attempt,
+                  output: checkpointHistory.latestCheckpoint.output,
+                  score: checkpointHistory.latestCheckpoint.score,
+                  history: checkpointHistory.history,
+                }
+              : undefined;
+
             iterLoopResult = await qualityLoop({
               producePrompt: itemPrompt,
               reviewPromptFor: (out) => buildReviewPrompt(itemRubric, out),
@@ -693,6 +709,7 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
               preReview: step.preReview
                 ? (output: string) => step.preReview!(ctx, output)
                 : undefined,
+              seedCheckpoint,
               ...iterRunners,
             });
           } catch (err) {
@@ -950,6 +967,21 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
           const reviewsDir = join(iterDir, "reviews");
           counters = { produce: 0, review: 0, fix: 0 };
 
+          const checkpointHistory = reconstructHistoryFromCheckpoints(
+            sprintDir,
+            step.name,
+            item.id,
+          );
+          const seedCheckpoint = checkpointHistory.latestCheckpoint
+            ? {
+                phase: checkpointHistory.latestCheckpoint.phase,
+                attempt: checkpointHistory.latestCheckpoint.attempt,
+                output: checkpointHistory.latestCheckpoint.output,
+                score: checkpointHistory.latestCheckpoint.score,
+                history: checkpointHistory.history,
+              }
+            : undefined;
+
           let iterLoopResult;
           try {
             iterLoopResult = await qualityLoop({
@@ -963,6 +995,7 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
               preReview: step.preReview
                 ? (output: string) => step.preReview!(ctx, output)
                 : undefined,
+              seedCheckpoint,
               ...iterRunners,
             });
           } catch (err) {
@@ -1207,6 +1240,21 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
 
       let loopResult;
       try {
+        const checkpointHistory = reconstructHistoryFromCheckpoints(
+          sprintDir,
+          step.name,
+          undefined,
+        );
+        const seedCheckpoint = checkpointHistory.latestCheckpoint
+          ? {
+              phase: checkpointHistory.latestCheckpoint.phase,
+              attempt: checkpointHistory.latestCheckpoint.attempt,
+              output: checkpointHistory.latestCheckpoint.output,
+              score: checkpointHistory.latestCheckpoint.score,
+              history: checkpointHistory.history,
+            }
+          : undefined;
+
         loopResult = await qualityLoop({
           producePrompt,
           reviewPromptFor: (out) => buildReviewPrompt(rubricText, out),
@@ -1218,6 +1266,7 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
           preReview: step.preReview
             ? (output: string) => step.preReview!(ctx, output)
             : undefined,
+          seedCheckpoint,
           ...runners,
         });
       } catch (err) {
@@ -1529,6 +1578,24 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
     gitCwd,
   );
   gitTag(sprintDoneTagName(sprintId), gitCwd);
+
+  if (readiness.readiness === "blocked" && effectiveConfig.selfFeeding?.enabled) {
+    const nextSprint = await handleReplan({
+      sprintDir,
+      recipe,
+      sprintId,
+      readiness,
+      selfFeeding: effectiveConfig.selfFeeding,
+    });
+    if (nextSprint) {
+      console.log(`[Self-Feeding] Sprint ${sprintId} blocked. Spawning follow-up sprint ${nextSprint.sprintId}...`);
+      return runSprint({
+        recipe,
+        sprintDir: nextSprint.sprintDir,
+        sprintId: nextSprint.sprintId,
+      });
+    }
+  }
 
   return { passed: true, sprintId, sprintDir, meter, perStep };
 }

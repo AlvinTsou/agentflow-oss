@@ -60,6 +60,11 @@ export interface AgentFlowConfig {
   steps?: Record<string, ConfigStep>;
   forEach?: Record<string, ConfigForEachStep>;
   policy?: MiddlemanPolicy;
+  /** Phase B-6 Self-Feeding Loops config */
+  selfFeeding?: {
+    enabled?: boolean;
+    maxFollowUps?: number;
+  };
 }
 
 const KNOWN_PROVIDERS: ReadonlySet<Provider> = new Set([
@@ -250,6 +255,28 @@ export function validateConfig(raw: unknown, recipe: Recipe): AgentFlowConfig {
 
   if ("policy" in cfg) {
     result.policy = validatePolicyConfig(cfg.policy);
+  }
+
+  if ("selfFeeding" in cfg) {
+    const sf = cfg.selfFeeding;
+    if (sf === null || typeof sf !== "object" || Array.isArray(sf)) {
+      throw new ConfigError(`"selfFeeding" must be an object.`);
+    }
+    const sfCfg = sf as Record<string, unknown>;
+    const outSf: { enabled?: boolean; maxFollowUps?: number } = {};
+    if ("enabled" in sfCfg) {
+      if (typeof sfCfg.enabled !== "boolean") {
+        throw new ConfigError(`"selfFeeding.enabled" must be a boolean.`);
+      }
+      outSf.enabled = sfCfg.enabled;
+    }
+    if ("maxFollowUps" in sfCfg) {
+      if (typeof sfCfg.maxFollowUps !== "number" || !Number.isInteger(sfCfg.maxFollowUps) || sfCfg.maxFollowUps < 0) {
+        throw new ConfigError(`"selfFeeding.maxFollowUps" must be a non-negative integer.`);
+      }
+      outSf.maxFollowUps = sfCfg.maxFollowUps;
+    }
+    result.selfFeeding = outSf;
   }
 
   return result;
@@ -462,6 +489,10 @@ export interface EffectiveConfig {
   steps: Record<string, EffectiveStep>;
   forEach: Record<string, ConfigForEachStep>;
   policy?: MiddlemanPolicy;
+  selfFeeding?: {
+    enabled: boolean;
+    maxFollowUps: number;
+  };
 }
 
 /**
@@ -491,6 +522,12 @@ export function resolveEffectiveConfig(
       ...(ov?.perPhase !== undefined ? { perPhase: ov.perPhase } : {}),
     };
   }
+
+  const selfFeeding = {
+    enabled: config?.selfFeeding?.enabled ?? recipe.selfFeeding?.enabled ?? false,
+    maxFollowUps: config?.selfFeeding?.maxFollowUps ?? recipe.selfFeeding?.maxFollowUps ?? 3,
+  };
+
   return {
     recipe: recipe.name,
     ...(config?.language !== undefined ? { language: config.language } : {}),
@@ -498,5 +535,6 @@ export function resolveEffectiveConfig(
     steps,
     forEach: config?.forEach ?? {},
     ...(config?.policy !== undefined ? { policy: config.policy } : {}),
+    selfFeeding,
   };
 }

@@ -9,6 +9,7 @@ import {
 } from "./git-checkpoint.js";
 import { runSprint, type RunSprintOptions, type SprintResult } from "./sprint-engine.js";
 import type { Recipe } from "../recipe/types.js";
+import { truncateStreamingCheckpoints } from "./streaming-checkpoint.js";
 
 export interface ResumeSprintOptions
   extends Omit<RunSprintOptions, "startFromStepIdx" | "sprintId"> {
@@ -143,6 +144,21 @@ export async function resumeSprint(opts: ResumeSprintOptions): Promise<SprintRes
       throw new Error(`Cannot resume: tag ${resetTag} not found.`);
     }
     gitResetHard(resetTag, sprintDir);
+  }
+
+  // Truncate streaming checkpoints matching the resumed state
+  let keptIterations: string[] = [];
+  if (opts.iterId) {
+    const idx = completedList.indexOf(opts.iterId);
+    keptIterations = idx >= 0 ? completedList.slice(0, idx) : completedList;
+  } else if (state.failedAt?.iteration && state.failedAt.stepIdx === target) {
+    keptIterations = completedList;
+  }
+
+  try {
+    truncateStreamingCheckpoints(sprintDir, recipe, target, keptIterations);
+  } catch (err) {
+    // Non-fatal
   }
 
   // Clear stale failure context to let work continue under clean status
