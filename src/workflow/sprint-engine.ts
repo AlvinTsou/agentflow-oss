@@ -29,6 +29,7 @@ import type {
   StepContext,
   ForEachItem,
   StepProviderOverride,
+  ConsensusVotingConfig,
 } from "../recipe/types.js";
 import { applyProviderOverride, resolveItemOverride } from "../recipe/types.js";
 import type { Provider, ProviderRunOptions } from "../middleman/provider.js";
@@ -119,6 +120,42 @@ export function buildRunners(
     },
   };
 }
+
+/**
+ * Builds the voters list and threshold config for multi-model consensus voting.
+ * Returns undefined if consensusVotingConfig is not set or empty.
+ */
+function buildConsensusVoters(
+  baseReviewer: Provider,
+  reviewOptions: ProviderRunOptions,
+  consensusVotingConfig: ConsensusVotingConfig | undefined,
+  globalPolicy?: MiddlemanPolicy,
+): {
+  voters: { runner: (p: string) => ReturnType<typeof runMiddlemanStep>; provider: string }[];
+  minVotesToPass: number;
+} | undefined {
+  if (!consensusVotingConfig || !consensusVotingConfig.voters || consensusVotingConfig.voters.length === 0) return undefined;
+  
+  const voters = consensusVotingConfig.voters.map((override) => {
+    const rev = applyProviderOverride(baseReviewer, reviewOptions, override);
+    const providerName = rev.provider;
+    const model = override.model ?? override.runOptions?.model;
+    const displayName = model ? `${providerName}:${model}` : providerName;
+    return {
+      runner: (p: string) =>
+        runMiddlemanStep(p, {
+          ...rev.options,
+          provider: rev.provider,
+          policy: { ...globalPolicy, ...rev.options.policy },
+        }),
+      provider: displayName,
+    };
+  });
+
+  const minVotesToPass = consensusVotingConfig.minVotesToPass ?? Math.ceil(voters.length / 2);
+  return { voters, minVotesToPass };
+}
+
 
 /**
  * Formats a resolved per-iter override for the
@@ -710,6 +747,12 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
                 ? (output: string) => step.preReview!(ctx, output)
                 : undefined,
               seedCheckpoint,
+              consensusVoting: buildConsensusVoters(
+                reviewProvider,
+                reviewOptions,
+                step.consensusVoting,
+                effectiveConfig.policy,
+              ),
               ...iterRunners,
             });
           } catch (err) {
@@ -996,6 +1039,12 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
                 ? (output: string) => step.preReview!(ctx, output)
                 : undefined,
               seedCheckpoint,
+              consensusVoting: buildConsensusVoters(
+                reviewProvider,
+                reviewOptions,
+                step.consensusVoting,
+                effectiveConfig.policy,
+              ),
               ...iterRunners,
             });
           } catch (err) {
@@ -1267,6 +1316,12 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
             ? (output: string) => step.preReview!(ctx, output)
             : undefined,
           seedCheckpoint,
+          consensusVoting: buildConsensusVoters(
+            reviewProvider,
+            reviewOptions,
+            step.consensusVoting,
+            effectiveConfig.policy,
+          ),
           ...runners,
         });
       } catch (err) {

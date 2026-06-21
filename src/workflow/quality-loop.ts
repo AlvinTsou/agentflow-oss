@@ -50,6 +50,14 @@ export interface QualityLoopConfig {
     score?: number;
     history: PhaseEvent[];
   };
+  /** Multi-model consensus voting config for the review phase. */
+  consensusVoting?: {
+    voters: {
+      runner: StepRunner;
+      provider: string;
+    }[];
+    minVotesToPass: number;
+  };
 }
 
 export interface PhaseEvent {
@@ -226,40 +234,131 @@ export async function qualityLoop(cfg: QualityLoopConfig): Promise<QualityLoopRe
     // has no fallback, so its failure stays fatal.
     let review!: StepResult;
     let parsed: number | null = null;
-    let caught: unknown;
-    let caughtError = false;
-    try {
-      review = await reviewer(reviewPrompt);
-      parsed = cfg.parseScore(review.output);
-    } catch (err) {
-      caught = err;
-      caughtError = true;
-    }
 
-    if ((caughtError || parsed === null) && cfg.reviewFallback) {
-      // Emit the failed primary review (only when we actually got one — a
-      // thrown primary leaves `review` unset) so the trace shows the attempt.
-      if (!caughtError) {
-        await record({ phase: "review", attempt, step: review });
+    if (cfg.consensusVoting) {
+      const voters = cfg.consensusVoting.voters;
+      const minVotes = cfg.consensusVoting.minVotesToPass;
+      
+      const voteResults = await Promise.all(
+        voters.map(async (v) => {
+          let vReview: StepResult;
+          let vScore: number | null = null;
+          let vErr: any = null;
+          try {
+            vReview = await v.runner(reviewPrompt);
+            vScore = cfg.parseScore(vReview.output);
+            if (vScore !== null && scoreCap !== undefined && vScore > scoreCap) {
+              vScore = scoreCap;
+            }
+          } catch (err) {
+            vErr = err;
+            vReview = {
+              output: `Voter execution failed: ${err instanceof Error ? err.message : String(err)}`,
+              inputTokens: 0,
+              outputTokens: 0,
+              totalTokens: 0,
+              durationMs: 0,
+              costUsd: 0,
+            };
+            vScore = 0;
+          }
+          return { v, review: vReview, score: vScore, error: vErr };
+        })
+      );
+
+      let totalInputTokens = 0;
+      let totalOutputTokens = 0;
+      let totalTokensSum = 0;
+      let maxDurationMs = 0;
+      let totalCostUsd = 0;
+      let positiveVotes = 0;
+      const details: string[] = [];
+
+      for (const res of voteResults) {
+        totalInputTokens += res.review.inputTokens;
+        totalOutputTokens += res.review.outputTokens;
+        totalTokensSum += res.review.totalTokens;
+        if (res.review.durationMs > maxDurationMs) {
+          maxDurationMs = res.review.durationMs;
+        }
+        totalCostUsd += res.review.costUsd;
+
+        const isPassed = res.score !== null && res.score >= targetScore;
+        if (isPassed) {
+          positiveVotes++;
+        }
+
+        details.push(
+          `### Voter: ${res.v.provider}\n` +
+          `Score: ${res.score !== null ? res.score : "N/A"} (${isPassed ? "PASS" : "FAIL"})\n\n` +
+          `${res.review.output}`
+        );
       }
-      const fallback = await cfg.reviewFallback(reviewPrompt);
-      const fallbackParsed = cfg.parseScore(fallback.output);
-      if (fallbackParsed === null) {
-        throw new ScoreParseError(fallback.output, attempt);
-      }
-      review = fallback;
-      parsed = fallbackParsed;
+
+      const consensusPassed = positiveVotes >= minVotes;
+      const validScores = voteResults.map((r) => r.score ?? 0);
+      const avgScore =
+        validScores.length > 0
+          ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length)
+          : 0;
+
+      parsed = consensusPassed
+        ? Math.max(avgScore, targetScore)
+        : Math.min(avgScore, targetScore - 1);
+
+      const reportOutput =
+        `# Consensus Voting Report\n\n` +
+        `- Verdict: **${consensusPassed ? "PASS" : "FAIL"}**\n` +
+        `- Positive Votes: **${positiveVotes}** / **${voters.length}** (Required: **${minVotes}**)\n` +
+        `- Average Score: **${avgScore}** / 10\n\n` +
+        `---\n\n` +
+        details.join("\n\n---\n\n");
+
+      review = {
+        output: reportOutput,
+        inputTokens: totalInputTokens,
+        outputTokens: totalOutputTokens,
+        totalTokens: totalTokensSum,
+        durationMs: maxDurationMs,
+        costUsd: totalCostUsd,
+      };
+
       lastScore = parsed;
-      if (scoreCap !== undefined && lastScore > scoreCap) lastScore = scoreCap;
-      await record({ phase: "review", attempt, score: lastScore, step: review, fallback: true });
-    } else if (caughtError) {
-      throw caught; // no fallback available -> the reviewer throw is fatal
-    } else if (parsed === null) {
-      throw new ScoreParseError(review.output, attempt);
-    } else {
-      lastScore = parsed;
-      if (scoreCap !== undefined && lastScore > scoreCap) lastScore = scoreCap;
       await record({ phase: "review", attempt, score: lastScore, step: review });
+    } else {
+      let caught: unknown;
+      let caughtError = false;
+      try {
+        review = await reviewer(reviewPrompt);
+        parsed = cfg.parseScore(review.output);
+      } catch (err) {
+        caught = err;
+        caughtError = true;
+      }
+
+      if ((caughtError || parsed === null) && cfg.reviewFallback) {
+        if (!caughtError) {
+          await record({ phase: "review", attempt, step: review });
+        }
+        const fallback = await cfg.reviewFallback(reviewPrompt);
+        const fallbackParsed = cfg.parseScore(fallback.output);
+        if (fallbackParsed === null) {
+          throw new ScoreParseError(fallback.output, attempt);
+        }
+        review = fallback;
+        parsed = fallbackParsed;
+        lastScore = parsed;
+        if (scoreCap !== undefined && lastScore > scoreCap) lastScore = scoreCap;
+        await record({ phase: "review", attempt, score: lastScore, step: review, fallback: true });
+      } else if (caughtError) {
+        throw caught;
+      } else if (parsed === null) {
+        throw new ScoreParseError(review.output, attempt);
+      } else {
+        lastScore = parsed;
+        if (scoreCap !== undefined && lastScore > scoreCap) lastScore = scoreCap;
+        await record({ phase: "review", attempt, score: lastScore, step: review });
+      }
     }
 
     if (!bestSet || lastScore > bestScore) {

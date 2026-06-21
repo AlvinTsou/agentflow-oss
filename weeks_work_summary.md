@@ -7,7 +7,7 @@ Repository: `agentflow-oss`
 
 - Branch: `main`
 - Baseline before this documentation refresh: clean working tree.
-- Latest synchronized commit: `d240997` (`feat(workflow): implement loop engineering phase b features and update summary`).
+- Latest synchronized commit: `0ebd07f` (`feat(workflow): implement loop engineering phase b features and update summary`).
 - Public Pages: `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - Latest remote CI runs on `main`: green.
 
@@ -23,7 +23,7 @@ git diff --check
 Validation details:
 
 - TypeScript build passed through `pnpm run build` (tsc --noEmit).
-- All offline test suites passed: 14 test files, 14 passing test runs, 0 failures.
+- All offline test suites passed: 15 test files, 15 passing test runs, 0 failures.
 - Secret and privacy scan passed with no findings.
 - Whitespace validation (`git diff --check`) passed.
 
@@ -82,7 +82,7 @@ autonomy concepts while preserving AgentFlow's engineering rigor.
 | B-5 | Streaming Checkpoint | **Moderate** | ~2 days | `src/workflow/streaming-checkpoint.ts` [NEW], `quality-loop.ts`, `resume.ts` |
 | B-6 | Self-Feeding Loops | **Large** | ~3 days | `src/workflow/replan.ts` [NEW], `sprint-engine.ts`, `src/recipe/types.ts` |
 
-### Phase C — Low-Priority (Backlog)
+### Phase C — Low-Priority (Completed)
 
 | ID | Feature | Gap Size | Effort | Key Files |
 |----|---------|----------|--------|-----------|
@@ -149,6 +149,30 @@ We have successfully designed, implemented, and verified all Phase B items from 
 - Wired `runSprint` in `src/workflow/sprint-engine.ts` to automatically trigger `handleReplan` and recursively call `runSprint` when a sprint is blocked and self-feeding is enabled.
 - Created `tests/poc-replan.ts` to verify end-to-end self-feeding loops, and registered it in `package.json`.
 - Verified all 14 test files and secret scan pass.
+
+Validation:
+
+```bash
+pnpm run test
+git diff --check
+```
+
+---
+
+## Loop Engineering Phase C Implementation Summary (Completed)
+
+We have successfully designed, implemented, and verified all Phase C items from the Loop Engineering integration plan.
+
+### Eval Regression Suite (C-7)
+- Implemented a formal regression evaluation engine in [regression.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/tests/eval/regression.ts) under the `tests/eval/` directory.
+- Defined three key evaluation scenarios: Maker-Checker mini flow, Security review unsafe logging block, and Consensus voting passing validation.
+- Integrated the evaluation suite into `package.json` with a dedicated `"test:eval"` script and appended it to the standard `"test"` pipeline execution.
+
+### Multi-Model Consensus Voting (C-8)
+- Added `ConsensusVotingConfig` type definitions in [types.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/src/recipe/types.ts) to define multiple voter configurations and minimum passing threshold `minVotesToPass`.
+- Wired `buildConsensusVoters` in [sprint-engine.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/src/workflow/sprint-engine.ts) to resolve voter providers, run options, and policies.
+- Refactored `qualityLoop` in [quality-loop.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/src/workflow/quality-loop.ts) to execute voter reviews in parallel, compile aggregated vote verdicts, calculate average scores, and format a combined Markdown report.
+- Verified the functionality end-to-end with unit test [poc-consensus-voting.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/tests/poc-consensus-voting.ts) and registered it under `package.json`.
 
 Validation:
 

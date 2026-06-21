@@ -250,7 +250,22 @@ export interface StepDef {
    * Optional condition function. The engine evaluates this before running the
    * step. If it returns false, the step is skipped.
    */
+  /**
+   * Optional condition function. The engine evaluates this before running the
+   * step. If it returns false, the step is skipped.
+   */
   condition?: (ctx: StepContext) => boolean;
+  /**
+   * Optional multi-model consensus voting configuration for the review phase.
+   */
+  consensusVoting?: ConsensusVotingConfig;
+}
+
+export interface ConsensusVotingConfig {
+  /** The list of providers (and optional model/runOptions overrides) participating in the vote. */
+  voters: StepProviderOverride[];
+  /** Minimum number of positive votes (score >= targetScore) required to pass. Defaults to Math.ceil(voters.length / 2). */
+  minVotesToPass?: number;
 }
 
 export interface Recipe {
