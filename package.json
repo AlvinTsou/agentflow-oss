@@ -11,7 +11,7 @@
     "build": "tsc --noEmit",
     "test:offline": "pnpm run test:offline:watchers && pnpm run test:offline:core",
     "test:offline:watchers": "node --import tsx --test tests/poc-trigger-registry.ts",
-    "test:offline:core": "node --import tsx --test tests/poc-middleman.ts tests/poc-contract-gate.ts tests/poc-readiness.ts tests/poc-best-so-far.ts tests/poc-research-recipe.ts tests/poc-release-readiness.ts tests/poc-pr-review.ts tests/poc-security-review.ts tests/poc-conditional-step.ts tests/poc-sprint-index.ts tests/poc-streaming-checkpoint.ts tests/poc-api-design-review.ts tests/poc-parallel-foreach.ts tests/poc-replan.ts tests/poc-consensus-voting.ts",
+    "test:offline:core": "node --import tsx --test tests/poc-middleman.ts tests/poc-contract-gate.ts tests/poc-readiness.ts tests/poc-best-so-far.ts tests/poc-research-recipe.ts tests/poc-release-readiness.ts tests/poc-pr-review.ts tests/poc-security-review.ts tests/poc-conditional-step.ts tests/poc-sprint-index.ts tests/poc-streaming-checkpoint.ts tests/poc-api-design-review.ts tests/poc-parallel-foreach.ts tests/poc-replan.ts tests/poc-consensus-voting.ts tests/poc-webhook.ts",
     "test:eval": "node --import tsx tests/eval/regression.ts",
     "test:secret-scan": "node --import tsx tests/secret-scan.ts",
     "test": "pnpm run build && pnpm run test:offline && pnpm run test:eval && pnpm run test:secret-scan",

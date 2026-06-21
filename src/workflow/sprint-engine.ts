@@ -370,6 +370,33 @@ export async function runSprint(opts: RunSprintOptions): Promise<SprintResult> {
     );
   }
   const store = new StateStore(sprintDir);
+  if (effectiveConfig.webhooks && effectiveConfig.webhooks.length > 0) {
+    store.subscribe((ev) => {
+      for (const wh of effectiveConfig.webhooks!) {
+        if (wh.events && wh.events.length > 0 && !wh.events.includes(ev.type)) {
+          continue;
+        }
+        const payload = {
+          sprintId,
+          recipeName: recipe.name,
+          event: ev,
+        };
+        globalThis.fetch(wh.url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "User-Agent": "AgentFlow-Engine/0.1.0",
+          },
+          body: JSON.stringify(payload),
+        }).catch((err) => {
+          console.error(
+            `[Webhook] Failed to send event "${ev.type}" to ${wh.url}:`,
+            err instanceof Error ? err.message : String(err),
+          );
+        });
+      }
+    });
+  }
   let state: ReturnType<StateStore["init"]>;
   if (startFromStepIdx === 0) {
     const existing = store.load();

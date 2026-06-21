@@ -65,6 +65,12 @@ export interface AgentFlowConfig {
     enabled?: boolean;
     maxFollowUps?: number;
   };
+  webhooks?: WebhookConfig[];
+}
+
+export interface WebhookConfig {
+  url: string;
+  events?: string[];
 }
 
 const KNOWN_PROVIDERS: ReadonlySet<Provider> = new Set([
@@ -277,6 +283,42 @@ export function validateConfig(raw: unknown, recipe: Recipe): AgentFlowConfig {
       outSf.maxFollowUps = sfCfg.maxFollowUps;
     }
     result.selfFeeding = outSf;
+  }
+
+  if ("webhooks" in cfg) {
+    const w = cfg.webhooks;
+    if (!Array.isArray(w)) {
+      throw new ConfigError(`"webhooks" must be an array.`);
+    }
+    const outWh: WebhookConfig[] = [];
+    for (let idx = 0; idx < w.length; idx++) {
+      const item = w[idx];
+      if (item === null || typeof item !== "object" || Array.isArray(item)) {
+        throw new ConfigError(`"webhooks[${idx}]" must be an object.`);
+      }
+      const whItem = item as Record<string, unknown>;
+      if (!("url" in whItem) || typeof whItem.url !== "string") {
+        throw new ConfigError(`"webhooks[${idx}].url" must be a string.`);
+      }
+      const validItem: WebhookConfig = { url: whItem.url };
+      if ("events" in whItem) {
+        const evs = whItem.events;
+        if (!Array.isArray(evs)) {
+          throw new ConfigError(`"webhooks[${idx}].events" must be an array.`);
+        }
+        const outEvs: string[] = [];
+        for (let eIdx = 0; eIdx < evs.length; eIdx++) {
+          const e = evs[eIdx];
+          if (typeof e !== "string") {
+            throw new ConfigError(`"webhooks[${idx}].events[${eIdx}]" must be a string.`);
+          }
+          outEvs.push(e);
+        }
+        validItem.events = outEvs;
+      }
+      outWh.push(validItem);
+    }
+    result.webhooks = outWh;
   }
 
   return result;
@@ -493,6 +535,7 @@ export interface EffectiveConfig {
     enabled: boolean;
     maxFollowUps: number;
   };
+  webhooks?: WebhookConfig[];
 }
 
 /**
@@ -536,5 +579,6 @@ export function resolveEffectiveConfig(
     forEach: config?.forEach ?? {},
     ...(config?.policy !== undefined ? { policy: config.policy } : {}),
     selfFeeding,
+    ...(config?.webhooks !== undefined ? { webhooks: config.webhooks } : {}),
   };
 }

@@ -114,6 +114,7 @@ export interface SprintEvent {
 export class StateStore {
   private statePath: string;
   private eventsPath: string;
+  private listeners: Array<(ev: SprintEvent) => void> = [];
 
   constructor(sprintDir: string) {
     mkdirSync(sprintDir, { recursive: true });
@@ -144,10 +145,24 @@ export class StateStore {
     return state;
   }
 
+  subscribe(listener: (ev: SprintEvent) => void): () => void {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
   emit(event: Omit<SprintEvent, "ts">): SprintEvent {
     const ts = new Date().toISOString();
     const ev: SprintEvent = { ts, ...event };
     appendFileSync(this.eventsPath, JSON.stringify(ev) + "\n", "utf-8");
+    for (const listener of this.listeners) {
+      try {
+        listener(ev);
+      } catch (err) {
+        console.error("[StateStore] Listener failed:", err);
+      }
+    }
     return ev;
   }
 }

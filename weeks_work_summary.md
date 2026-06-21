@@ -7,7 +7,7 @@ Repository: `agentflow-oss`
 
 - Branch: `main`
 - Baseline before this documentation refresh: clean working tree.
-- Latest synchronized commit: `0ebd07f` (`feat(workflow): implement loop engineering phase b features and update summary`).
+- Latest synchronized commit: `6eb865a` (`feat(workflow): implement loop engineering phase c features and update summary`).
 - Public Pages: `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - Latest remote CI runs on `main`: green.
 
@@ -23,7 +23,7 @@ git diff --check
 Validation details:
 
 - TypeScript build passed through `pnpm run build` (tsc --noEmit).
-- All offline test suites passed: 15 test files, 15 passing test runs, 0 failures.
+- All offline test suites passed: 16 test files, 16 passing test runs, 0 failures.
 - Secret and privacy scan passed with no findings.
 - Whitespace validation (`git diff --check`) passed.
 
@@ -164,15 +164,41 @@ git diff --check
 We have successfully designed, implemented, and verified all Phase C items from the Loop Engineering integration plan.
 
 ### Eval Regression Suite (C-7)
-- Implemented a formal regression evaluation engine in [regression.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/tests/eval/regression.ts) under the `tests/eval/` directory.
+- Implemented a formal regression evaluation engine in [regression.ts](tests/eval/regression.ts) under the `tests/eval/` directory.
 - Defined three key evaluation scenarios: Maker-Checker mini flow, Security review unsafe logging block, and Consensus voting passing validation.
 - Integrated the evaluation suite into `package.json` with a dedicated `"test:eval"` script and appended it to the standard `"test"` pipeline execution.
 
 ### Multi-Model Consensus Voting (C-8)
-- Added `ConsensusVotingConfig` type definitions in [types.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/src/recipe/types.ts) to define multiple voter configurations and minimum passing threshold `minVotesToPass`.
-- Wired `buildConsensusVoters` in [sprint-engine.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/src/workflow/sprint-engine.ts) to resolve voter providers, run options, and policies.
-- Refactored `qualityLoop` in [quality-loop.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/src/workflow/quality-loop.ts) to execute voter reviews in parallel, compile aggregated vote verdicts, calculate average scores, and format a combined Markdown report.
-- Verified the functionality end-to-end with unit test [poc-consensus-voting.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/tests/poc-consensus-voting.ts) and registered it under `package.json`.
+- Added `ConsensusVotingConfig` type definitions in [types.ts](src/recipe/types.ts) to define multiple voter configurations and minimum passing threshold `minVotesToPass`.
+- Wired `buildConsensusVoters` in [sprint-engine.ts](src/workflow/sprint-engine.ts) to resolve voter providers, run options, and policies.
+- Refactored `qualityLoop` in [quality-loop.ts](src/workflow/quality-loop.ts) to execute voter reviews in parallel, compile aggregated vote verdicts, calculate average scores, and format a combined Markdown report.
+- Verified the functionality end-to-end with unit test [poc-consensus-voting.ts](tests/poc-consensus-voting.ts) and registered it under `package.json`.
+
+Validation:
+
+```bash
+pnpm run test
+git diff --check
+```
+
+---
+
+## Loop Engineering Long-term Backlog: Webhook Notifications (Completed)
+
+We have successfully implemented, verified, and integrated webhook notifications for engine-level event triggering.
+
+### Webhook Configuration & Types
+- Defined `WebhookConfig` interface under [config-loader.ts](src/workflow/config-loader.ts) supporting target `url` and optional `events` filter list.
+- Updated `validateConfig` and `resolveEffectiveConfig` to properly parse, typecheck, and forward webhook configurations from `agentflow.config.json`.
+
+### StateStore Event Subscription (Pub/Sub)
+- Refactored `StateStore` in [state-store.ts](src/workflow/state-store.ts) to support subscription mechanism (`subscribe`).
+- Dispatched all emitted sprint events asynchronously to subscribers within `emit()`, keeping logging logic decoupled from network transports.
+
+### Asynchronous HTTP Webhook Dispatch
+- Subscribed webhook callers inside `runSprint` in [sprint-engine.ts](src/workflow/sprint-engine.ts) right after state store hydration.
+- Dispatched non-blocking event notifications via Node.js native `globalThis.fetch` to prevent network latency from blocking the sprint loop.
+- Added comprehensive integration test suite [poc-webhook.ts](tests/poc-webhook.ts) utilizing a dynamic local mock HTTP server, and registered it in `package.json` and [regression.ts](tests/eval/regression.ts) regression testing suite.
 
 Validation:
 

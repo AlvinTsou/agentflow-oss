@@ -113,6 +113,30 @@ const evalCases: EvalCase[] = [
     })(),
     expectedPass: true,
   },
+  {
+    name: "Scenario 4: Webhook Notification Configuration",
+    recipe: {
+      name: "webhook-flow",
+      description: "Webhook flow recipe",
+      steps: [
+        {
+          name: "webhook-step",
+          provider: "claude",
+          intent: "synthetic",
+          producePrompt: "hello",
+          rubric: "must contain score",
+        },
+      ],
+    },
+    mockResponses: (req) => {
+      const prompt = req.messages.find((m) => m.role === "user")?.content ?? "";
+      if (prompt.includes("ARTIFACT UNDER REVIEW")) {
+        return { output: `{"score": 10, "passed": ["C1"], "failed": [], "notes": "perfect"}` };
+      }
+      return { output: "hello world" };
+    },
+    expectedPass: true,
+  },
 ];
 
 async function runEval() {
@@ -123,9 +147,12 @@ async function runEval() {
     const tmp = mkdtempSync(join(testTmpDir, "eval-case-"));
     initSprintRepo(tmp);
     writeFileSync(join(tmp, "INPUT.md"), "# Test Brief\n\nRegression evaluation task", "utf-8");
+    const configContent = tc.name.includes("Webhook")
+      ? `{ "recipe": "${tc.recipe.name}", "gate": { "defaultMode": "auto" }, "webhooks": [{ "url": "http://127.0.0.1:0/webhook", "events": ["sprint-started"] }] }`
+      : `{ "recipe": "${tc.recipe.name}", "gate": { "defaultMode": "auto" } }`;
     writeFileSync(
       join(tmp, "agentflow.config.json"),
-      `{ "recipe": "${tc.recipe.name}", "gate": { "defaultMode": "auto" } }`,
+      configContent,
       "utf-8",
     );
 
