@@ -90,7 +90,7 @@ This release adds an init-supported recipe for API standards review.
 - **Offline validation fixtures:** Cover clean REST API, breaking change, and non-standard naming scenarios.
 - **Recipe registration:** Register the recipe with `ag init` and the recipe registry while keeping direct `ag run <recipe>` support limited to the core runnable recipes.
 
-## v1.7 -- Management Checkpoint Foundation (In Progress)
+## v1.7 -- Management Checkpoint Foundation (Completed)
 
 This release starts the management-platform path without introducing a web server.
 

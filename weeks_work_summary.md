@@ -1,6 +1,6 @@
 # Weekly Work Summary
 
-Date: 2026-06-21
+Date: 2026-06-22
 Repository: `agentflow-oss`
 
 ## Current Repo State
@@ -199,6 +199,35 @@ We have successfully implemented, verified, and integrated webhook notifications
 - Subscribed webhook callers inside `runSprint` in [sprint-engine.ts](src/workflow/sprint-engine.ts) right after state store hydration.
 - Dispatched non-blocking event notifications via Node.js native `globalThis.fetch` to prevent network latency from blocking the sprint loop.
 - Added comprehensive integration test suite [poc-webhook.ts](tests/poc-webhook.ts) utilizing a dynamic local mock HTTP server, and registered it in `package.json` and [regression.ts](tests/eval/regression.ts) regression testing suite.
+
+Validation:
+
+```bash
+pnpm run test
+git diff --check
+```
+
+---
+
+## Management Checkpoint Foundation (v1.7) (Completed)
+
+We have successfully designed, implemented, and verified the foundational local management contract interfaces and checkpoint aggregation features.
+
+### Management API Contract & Summaries
+- Implemented [management-api.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/src/workflow/management-api.ts) with type-safe interfaces for `SprintSummary`, `ControlAction`, and `ControlActionType`.
+- Implemented `getSprintSummary(sprintDir)` to aggregate total token counts, total costs, sprint phases (`initialized`, `running`, `completed`, `failed`), and readiness status from local `events.jsonl` files.
+
+### Offline Contract Validation
+- Added [poc-management-api.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/tests/poc-management-api.ts) verifying the aggregation of token usage, cost, sprint phases, and streaming checkpoint reading under offline mock environments.
+- Registered the mock validation suite in `package.json` under `test:offline:core`.
+
+### Multilingual Roadmap Synchronization
+- Synchronized roadmap progress and v1.7 feature milestones across translated documentation pages:
+  - English: [docs/en/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/en/index.html)
+  - Traditional Chinese: [docs/zh-tw/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/zh-tw/index.html)
+  - Simplified Chinese: [docs/zh-cn/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/zh-cn/index.html)
+  - Japanese: [docs/ja/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/ja/index.html)
+  - Korean: [docs/ko/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/ko/index.html)
 
 Validation:
 
