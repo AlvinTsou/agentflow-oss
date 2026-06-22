@@ -187,11 +187,11 @@
       <h2 class="section-title">프로젝트 진행 상황</h2>
       <div class="card progress-container">
         <div class="progress-header">
-          <span class="badge badge-in-progress">Week 6 유지보수 진행 중</span>
-          <span class="progress-date">상태 업데이트: 2026-06-14</span>
+          <span class="badge badge-in-progress">Week 8 유지보수 진행 중</span>
+          <span class="progress-date">상태 업데이트: 2026-06-22</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          공개 repository 의 OSS baseline 은 준비되어 있습니다. CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, active roadmap 이 갖추어졌습니다. Core engine 은 sprint recipes 실행, artifacts 와 state 저장, quality loops, resume, readiness signals 를 지원합니다. Middleman layer 는 provider capability validation, route metadata, security profiles, 재생 가능한 route audit output 을 제공합니다. 완료된 recipe set 은 <code>mini</code>, <code>research</code>, <code>sdd</code>, <code>release-readiness</code>, <code>pr-review</code>, <code>security-review</code> 입니다.
+          공개 repository 의 OSS baseline 은 준비되어 있습니다. CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, active roadmap 이 갖추어졌습니다. Core engine 은 sprint recipes 실행, artifacts 와 state 저장, quality loops, resume, readiness signals 를 지원합니다. Middleman layer 는 provider capability validation, route metadata, security profiles, 재생 가능한 route audit output 을 제공합니다. 완료된 recipe set 은 <code>mini</code>, <code>research</code>, <code>sdd</code>, <code>release-readiness</code>, <code>pr-review</code>, <code>security-review</code>, <code>api-design-review</code> 입니다.
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -212,10 +212,16 @@
               <p>기능 검증, 라우트 메타데이터 기록, 보안 프로필을 적용하는 내부 라우팅 계층을 적용하였습니다.</p>
             </div>
           </li>
-          <li class="progress-item current">
+          <li class="progress-item">
             <div>
               <h3>릴리즈 준비 기능 강화</h3>
-              <p>현재 초점은 Pages accuracy, route audit examples, 차기 확장 기능입니다.</p>
+              <p>예외 상황 처리 강화, CLI 레이아웃 최적화 및 사용자 정의 마스킹 설정 검증 규칙을 완료했습니다.</p>
+            </div>
+          </li>
+          <li class="progress-item current">
+            <div>
+              <h3>이벤트 구동 및 관리 계약</h3>
+              <p>백그라운드 데몬 트리거, 동시성 세마포어, 스트리밍 체크포인트 기록 및 관리 플랫폼 데이터 계약과 오프라인 검증을 구현했습니다.</p>
             </div>
           </li>
         </ul>

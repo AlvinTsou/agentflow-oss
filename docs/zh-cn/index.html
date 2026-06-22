@@ -187,11 +187,11 @@
       <h2 class="section-title">项目进展</h2>
       <div class="card progress-container">
         <div class="progress-header">
-          <span class="badge badge-in-progress">Week 6 活跃维护中</span>
-          <span class="progress-date">进度更新时间：2026-06-14</span>
+          <span class="badge badge-in-progress">Week 8 活跃维护中</span>
+          <span class="progress-date">进度更新时间：2026-06-22</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          公开 repository 的 OSS baseline 已经到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 和 active roadmap 都已建立。Core engine 已能运行 sprint recipes、保存 artifacts 和 state、应用 quality loops、支持 resume，并生成 readiness signals。Middleman layer 已支持 provider capability validation、route metadata、security profiles，以及可回放的 route audit output。已完成 recipe set 包含 <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code>、<code>pr-review</code> 与 <code>security-review</code>。
+          公开 repository 的 OSS baseline 已经到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 和 active roadmap 都已建立。Core engine 已能运行 sprint recipes、保存 artifacts 和 state、应用 quality loops、支持 resume，并生成 readiness signals。Middleman layer 已支持 provider capability validation、route metadata、security profiles，以及可回放的 route audit output。已完成 recipe set 包含 <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code>、<code>pr-review</code>、<code>security-review</code> 与 <code>api-design-review</code>。
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -264,6 +264,27 @@
               <div class="feature-info">
                 <h4>Security Review Recipe</h4>
                 <p>专为身份验证、数据访问和不安全日志设计的 3 步骤 recipe，并提供结构化 Verdict。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>事件触发与并发执行 (v1.5)</h4>
+                <p>支持后台 daemon (cron/fs-watch/git-hook) 触发事件，并借由信号量控制并发执行。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>API 设计审查工作流 (v1.6)</h4>
+                <p>专为 RESTful 端点、Naming Style 及破坏性变更进行质量管控的工作流。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>管理平台 API 与检查点 (v1.7)</h4>
+                <p>通过 Node 原生 API 与本地 JSONL 数据库，结构化输出阶段检查点、事件及 Sprint 摘要。</p>
               </div>
             </li>
           </ul>

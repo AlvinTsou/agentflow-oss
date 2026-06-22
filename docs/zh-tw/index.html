@@ -187,11 +187,11 @@
       <h2 class="section-title">專案進度</h2>
       <div class="card progress-container">
         <div class="progress-header">
-          <span class="badge badge-in-progress">Week 6 活躍維護中</span>
-          <span class="progress-date">進度更新時間：2026-06-14</span>
+          <span class="badge badge-in-progress">Week 8 活躍維護中</span>
+          <span class="progress-date">進度更新時間：2026-06-22</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          公開 repository 的 OSS baseline 已經到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 與 active roadmap 都已建立。Core engine 已能執行 sprint recipes、保存 artifacts 與 state、套用 quality loops、支援 resume，並產生 readiness signals。Middleman layer 已支援 provider capability validation、route metadata、security profiles，以及可回放的 route audit output。已完成 recipe set 包含 <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code>、<code>pr-review</code> 與 <code>security-review</code>。
+          公開 repository 的 OSS baseline 已經到位：CI、issue templates、security policy、contribution docs、CLI reference、architecture docs 與 active roadmap 都已建立。Core engine 已能執行 sprint recipes、保存 artifacts 與 state、套用 quality loops、支援 resume，並產生 readiness signals。Middleman layer 已支援 provider capability validation、route metadata、security profiles，以及可回放的 route audit output。已完成 recipe set 包含 <code>mini</code>、<code>research</code>、<code>sdd</code>、<code>release-readiness</code>、<code>pr-review</code>、<code>security-review</code> 與 <code>api-design-review</code>。
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -212,10 +212,16 @@
               <p>內建路由層，具備模型能力驗證、路徑元數據紀錄，以及安全過濾 Profile。</p>
             </div>
           </li>
-          <li class="progress-item current">
+          <li class="progress-item">
             <div>
               <h3>Release-Readiness 強化</h3>
-              <p>目前工作重點是 Pages accuracy、route audit examples，以及下一階段的擴充功能。</p>
+              <p>已完成邊界情況強化、CLI 終端介面優化，以及自訂遮蔽設定驗證規則。</p>
+            </div>
+          </li>
+          <li class="progress-item current">
+            <div>
+              <h3>事件驅動與管理合約</h3>
+              <p>已實現背景 daemon 觸發器、並行信號量、串流檢查點記錄，以及管理平台資料合約與測試驗證。</p>
             </div>
           </li>
         </ul>
@@ -264,6 +270,27 @@
               <div class="feature-info">
                 <h4>Security Review Recipe</h4>
                 <p>專為身份驗證、數據存取和不安全日誌設計的 3 步驟 recipe，並提供結構化 Verdict。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>事件觸發與並行執行 (v1.5)</h4>
+                <p>支援背景 daemon (cron/fs-watch/git-hook) 觸發事件，並藉由信號量控制並行執行。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>API 設計審查工作流 (v1.6)</h4>
+                <p>專為 RESTful 端點、Naming Style 及破壞性變更進行品質管控的工作流。</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>管理平台 API 與檢查點 (v1.7)</h4>
+                <p>透過 Node 原生 API 與本地 JSONL 資料庫，結構化輸出階段檢查點、事件及 Sprint 摘要。</p>
               </div>
             </li>
           </ul>

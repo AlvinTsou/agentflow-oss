@@ -187,11 +187,11 @@
       <h2 class="section-title">Project Progress</h2>
       <div class="card progress-container">
         <div class="progress-header">
-          <span class="badge badge-in-progress">Week 6 Active Focus</span>
-          <span class="progress-date">Status snapshot: 2026-06-14</span>
+          <span class="badge badge-in-progress">Week 8 Active Focus</span>
+          <span class="progress-date">Status snapshot: 2026-06-22</span>
         </div>
         <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
-          The public repository now has its OSS baseline in place: CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, and an active roadmap. The core engine runs sprint recipes, persists artifacts and state, applies quality loops, supports resume, and records readiness signals. The middleman layer validates provider capabilities, records route metadata, applies security profiles, and now exposes replayable route audit output. The completed recipe set includes <code>mini</code>, <code>research</code>, <code>sdd</code>, <code>release-readiness</code>, <code>pr-review</code>, and <code>security-review</code>.
+          The public repository now has its OSS baseline in place: CI, issue templates, security policy, contribution docs, CLI reference, architecture docs, and an active roadmap. The core engine runs sprint recipes, persists artifacts and state, applies quality loops, supports resume, and records readiness signals. The middleman layer validates provider capabilities, records route metadata, applies security profiles, and now exposes replayable route audit output. The completed recipe set includes <code>mini</code>, <code>research</code>, <code>sdd</code>, <code>release-readiness</code>, <code>pr-review</code>, <code>security-review</code>, and <code>api-design-review</code>.
         </p>
         <ul class="progress-list">
           <li class="progress-item">
@@ -212,10 +212,16 @@
               <p>Shipped internal routing layer featuring capability validation, route metadata, and security profiles.</p>
             </div>
           </li>
-          <li class="progress-item current">
+          <li class="progress-item">
             <div>
               <h3>Release-Readiness Hardening</h3>
-              <p>Currently focusing on Pages accuracy, route audit examples, and next extensions.</p>
+              <p>Completed edge-case hardening, CLI layout optimizations, and configuration validation rules.</p>
+            </div>
+          </li>
+          <li class="progress-item current">
+            <div>
+              <h3>Loop Engineering & Checkpoints</h3>
+              <p>Implemented daemon triggers, concurrency semaphore, streaming checkpoints, and management API contract.</p>
             </div>
           </li>
         </ul>
@@ -264,6 +270,27 @@
               <div class="feature-info">
                 <h4>Security Review Recipe</h4>
                 <p>A specialized 3-step recipe targeting authentication, data access, and unsafe logging with structured verdicts.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Trigger Layer & Concurrency (v1.5)</h4>
+                <p>Daemon-driven triggers (cron, fs-watch, git-hook) paired with counting semaphore parallel executions.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>API Design Review Workflow (v1.6)</h4>
+                <p>Audits REST endpoints, payloads, standards, naming consistency, and breaking changes.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-marker"></span>
+              <div class="feature-info">
+                <h4>Management API & Checkpoints (v1.7)</h4>
+                <p>Exposes structured checkpoints, events, and sprint summaries via Node-native APIs and local databases.</p>
               </div>
             </li>
           </ul>
