@@ -89,12 +89,12 @@ autonomy concepts while preserving AgentFlow's engineering rigor.
 | C-7 | Eval Regression Suite | **Small** | ~2 days | `tests/eval/` [NEW], `package.json` |
 | C-8 | Multi-Model Consensus Voting | **Small** | ~1 day | `quality-loop.ts`, `src/recipe/types.ts` |
 
-### Open Decisions
+### Resolved Decisions
 
-1. **Trigger scope (A-1):** Start with cron-only or support all three (cron, fs-watch, git-hook) in v1?
-2. **Knowledge backend (A-2):** Flat JSONL (consistent with `state.json`) or SQLite for query flexibility?
-3. **Concurrency limit (A-4):** Default `maxConcurrent` value — 4 suggested, depends on API rate limits.
-4. **Self-feeding budget (B-6):** Hard cap on auto-generated follow-up sprints (default 3, configurable in `agentflow.config.json` via `selfFeeding.maxFollowUps`).
+1. **Trigger scope (A-1):** Support all three (cron, fs-watch, git-hook) in v1.
+2. **Knowledge backend (A-2):** Flat JSONL (consistent with `state.json`).
+3. **Concurrency limit (A-4):** Default `maxConcurrent` value set to 3.
+4. **Self-feeding budget (B-6):** Hard cap on auto-generated follow-up sprints set to 3 (default 3, configurable in `agentflow.config.json` via `selfFeeding.maxFollowUps`).
 
 ---
 
