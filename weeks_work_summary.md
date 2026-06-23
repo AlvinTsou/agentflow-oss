@@ -1,13 +1,13 @@
 # Weekly Work Summary
 
-Date: 2026-06-22
+Date: 2026-06-23
 Repository: `agentflow-oss`
 
 ## Current Repo State
 
 - Branch: `main`
 - Baseline before this documentation refresh: clean working tree.
-- Latest synchronized commit: `6eb865a` (`feat(workflow): implement loop engineering phase c features and update summary`).
+- Latest synchronized commit: `f0a9b99` (`chore(rules): add agents rules file to remind updating readme`).
 - Public Pages: `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - Latest remote CI runs on `main`: green.
 
@@ -214,20 +214,23 @@ git diff --check
 We have successfully designed, implemented, and verified the foundational local management contract interfaces and checkpoint aggregation features.
 
 ### Management API Contract & Summaries
-- Implemented [management-api.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/src/workflow/management-api.ts) with type-safe interfaces for `SprintSummary`, `ControlAction`, and `ControlActionType`.
+- Implemented [management-api.ts](src/workflow/management-api.ts) with type-safe interfaces for `SprintSummary`, `ControlAction`, and `ControlActionType`.
 - Implemented `getSprintSummary(sprintDir)` to aggregate total token counts, total costs, sprint phases (`initialized`, `running`, `completed`, `failed`), and readiness status from local `events.jsonl` files.
 
 ### Offline Contract Validation
-- Added [poc-management-api.ts](file:///Users/alvintsou/Documents/Projects/agentflow-oss/tests/poc-management-api.ts) verifying the aggregation of token usage, cost, sprint phases, and streaming checkpoint reading under offline mock environments.
+- Added [poc-management-api.ts](tests/poc-management-api.ts) verifying the aggregation of token usage, cost, sprint phases, and streaming checkpoint reading under offline mock environments.
 - Registered the mock validation suite in `package.json` under `test:offline:core`.
 
 ### Multilingual Roadmap Synchronization
 - Synchronized roadmap progress and v1.7 feature milestones across translated documentation pages:
-  - English: [docs/en/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/en/index.html)
-  - Traditional Chinese: [docs/zh-tw/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/zh-tw/index.html)
-  - Simplified Chinese: [docs/zh-cn/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/zh-cn/index.html)
-  - Japanese: [docs/ja/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/ja/index.html)
-  - Korean: [docs/ko/index.html](file:///Users/alvintsou/Documents/Projects/agentflow-oss/docs/ko/index.html)
+  - English: [docs/en/index.html](docs/en/index.html)
+  - Traditional Chinese: [docs/zh-tw/index.html](docs/zh-tw/index.html)
+  - Simplified Chinese: [docs/zh-cn/index.html](docs/zh-cn/index.html)
+  - Japanese: [docs/ja/index.html](docs/ja/index.html)
+  - Korean: [docs/ko/index.html](docs/ko/index.html)
+
+### Project-Scoped Agent Rules
+- Added project-scoped agent rules file [.agents/AGENTS.md](.agents/AGENTS.md) containing documentation co-update guidelines, ensuring project documentations (such as `README.md`) are kept in sync with code features.
 
 Validation:
 
