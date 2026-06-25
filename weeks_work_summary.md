@@ -1,13 +1,13 @@
 # Weekly Work Summary
 
-Date: 2026-06-23
+Date: 2026-06-25
 Repository: `agentflow-oss`
 
 ## Current Repo State
 
 - Branch: `main`
 - Baseline before this documentation refresh: clean working tree.
-- Latest synchronized commit: `f0a9b99` (`chore(rules): add agents rules file to remind updating readme`).
+- Latest synchronized commit: `e1d2db5` (`docs(concepts): explain quality-loop and clean-context isolation`).
 - Public Pages: `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - Latest remote CI runs on `main`: green.
 
@@ -59,6 +59,13 @@ Validation details:
 - Subsequent correction: `api-design-review` is now implemented as an init-supported recipe and recorded as `v1.6 -- API Design Review Workflow (Completed)` in `ROADMAP.md`.
 - Synchronized `docs/cli-reference.md` command documentation.
 - Confirmed code compilation and full offline/secret test suite pass.
+
+### Day 9 - Concept Documentation Enrichment
+
+- Resolved Issue #5 by adding a dedicated conceptual explainer [quality-loop-and-clean-context.md](docs/concepts/quality-loop-and-clean-context.md).
+- Detailed the Clean-Context Isolation strategy that prevents prompt drift, context bloat, and attention decay across workflow steps.
+- Explained the Quality Loop's bounded context retry mechanism that limits fix-phase history to the immediate previous attempt, along with robustness safeguards like Best-So-Far retention and cross-model reviewer fallback.
+- Successfully closed Issue #5 on GitHub.
 
 ## Loop Engineering Integration Plan
 
