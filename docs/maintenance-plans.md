@@ -2,9 +2,9 @@
 
 This document consolidates the weekly active maintenance plans for `agentflow-oss` and tracks the current implementation status.
 
-## Current Verification Status (As of 2026-06-19)
+## Current Verification Status (As of 2026-06-25)
 
-- **GitHub Pages**: **Live**. Repository Pages is enabled, the configured source is `main:/docs`, the Pages API reports `built`, HTTPS is enforced, and `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
+- **GitHub Pages**: **Live**. Repository Pages is enabled, the configured source is `main:/docs`, public URL and latest Pages deployment are healthy, but the Pages API currently reports `errored`, HTTPS is enforced, and `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
 - **Latest GitHub Actions Check**: **Green**. Recent `CI` and `pages-build-deployment` runs on `main` completed successfully.
 - **Week 1 Plan**: **Completed**. OpenAI-compatible gateway smoke test CLI, SDD walkthrough documentation, provider capability registry, capability validation, route metadata, security profiles, and route audit logging are implemented and covered by tests.
 - **Week 2 / Week 3 Work**: **Completed**. Release-readiness recipe integration, offline fixtures, custom redaction policy behavior, documentation, and roadmap synchronization are represented in the repo maintenance logs.
@@ -12,8 +12,8 @@ This document consolidates the weekly active maintenance plans for `agentflow-os
 - **Week 5 Plan**: **Completed**. The `pr-review` recipe is defined, exposed through init, covered by offline tests and fixtures, and wired to git diff context ingestion.
 - **Week 6 Plan**: **Completed**. Pages accuracy, PR review documentation, route audit examples, security review scoping, and weekly verification are recorded in the Week 6 maintenance log.
 - **Week 7 Work**: **Completed**. Security review hardening, `api-design-review` recipe initialization, conditional step execution, trigger registry support, sprint outcome indexing, and parallel `forEach` execution are recorded in the Week 7 maintenance log and covered by offline tests.
-- **Week 8 Work**: **Started**. The first Phase B slice adds a phase-level streaming checkpoint foundation and management API data contract, without introducing a web server yet.
-- **Next Maintenance Focus**: **Week 8 / Phase B Continuation**. Extend checkpoint consumers and decide whether to continue into `Self-Feeding Loops (B-6)` or a minimal local management API reader.
+- **Week 8 Work**: **Completed**. Phase B continuation (streaming checkpoint resume support, self-feeding loops), Phase C (regression eval suite, multi-model consensus voting), webhook notifications (config parsing, state-store subscription, async dispatch), v1.7 management checkpoint foundation (management-api.ts, sprint summary aggregation, checkpoint reading, multilingual roadmap sync), and concept-doc closeout are implemented and covered by tests.
+- **Next Maintenance Focus**: **Reconcile planning and status docs**. Reconcile the public maintenance schedule and planning documentation with the currently shipped repo state before starting subsequent feature slices.
 
 ---
 
