@@ -7,10 +7,10 @@ Updated: 2026-06-25
 - Worktree: `~/Documents/Projects/agentflow-oss`
 - Current branch: `main`
 - Remote tracking: `origin/main`
-- Worktree status after this update: one local modification, `weeks_work_summary.md`
+- Worktree status after this update: clean (except this update-and-plan pass edits to documentation)
 - PR / issue: no active PR checked in this handoff; Issue #5 was previously closed by the concept document update.
-- Head commit: `b43865f` (`docs(summary): record concept document work and update current state`)
-- Remote head: `origin/main` at `b43865f`
+- Head commit: `d09fe10` (`feat(ui): implement hono backend server and vite-react dashboard`)
+- Remote head: `origin/main` at `d09fe10`
 - Public Pages URL: `https://alvintsou.github.io/agentflow-oss/`
 - Pages source: `main:/docs`
 
@@ -22,9 +22,9 @@ git status --short --branch
 
 ## Current Status
 
-`main` is synchronized with `origin/main` at commit `b43865f`, and this update-and-plan pass leaves one uncommitted documentation edit in `weeks_work_summary.md`. The latest remote `CI` run and the latest `pages-build-deployment` run on `main` both completed successfully on 2026-06-25. The public GitHub Pages URL returns `HTTP/2 200`.
+`main` is synchronized with `origin/main` at commit `d09fe10`, and this update-and-plan pass leaves uncommitted documentation edits to reconcile the schedule. The latest remote `CI` run and the latest `pages-build-deployment` run on `main` both completed successfully on 2026-06-25. The public GitHub Pages URL returns `HTTP/2 200`.
 
-The repo has moved beyond the older Week 8 "started" state. Loop Engineering Phase A, Phase B, Phase C, webhook notifications, and the v1.7 management checkpoint foundation are implemented and represented in current code/tests/docs. The practical next step is not a new feature slice; it is to reconcile planning/status docs so public schedule text matches shipped reality.
+The repo has moved beyond the older Week 8 "started" state. Loop Engineering Phase A, Phase B, Phase C, webhook notifications, the v1.7 management checkpoint foundation, and the v1.8 Web UI dashboard (Hono backend server + Vite-React frontend) are implemented and represented in current code/tests/docs. The practical next step is to reconcile planning/status docs so public schedule text matches shipped reality.
 
 ## Current Verification
 
@@ -48,7 +48,7 @@ Observed results:
 
 - Initial `git status --short --branch`: `## main...origin/main` plus `M weeks_work_summary.md`
 - After update: `## main...origin/main` plus modified docs (`weeks_work_summary.md`, `docs/maintenance-plans.md`, `docs/maintenance-log/2026-06-week-8.md`)
-- Latest local/remote head: `b43865f`
+- Latest local/remote head: `d09fe10`
 - Latest `CI` run: `completed success`, run `28150123514`, `2026-06-25T05:58:27Z`
 - Latest `pages-build-deployment` run: `completed success`, run `28150123168`, `2026-06-25T05:58:26Z`
 - Public Pages: `HTTP/2 200`, `last-modified: Thu, 25 Jun 2026 05:58:57 GMT`
@@ -66,6 +66,7 @@ Observed results:
 - Loop Engineering Phase C: regression eval suite and multi-model consensus voting were implemented and tested.
 - Webhook notifications: config parsing, state-store subscription, async dispatch, and integration tests were added.
 - v1.7 Management Checkpoint Foundation: `management-api.ts`, sprint summary aggregation, checkpoint reading, and multilingual roadmap synchronization were added.
+- v1.8 Web UI Dashboard: Hono backend server (`src/server/index.ts`) for reading sprint summaries, events, checkpoints, and posting actions; Vite-React dashboard (`ui/src/App.tsx`) for visual sprint management.
 - Concept docs: `docs/concepts/quality-loop-and-clean-context.md` was added and Issue #5 was closed.
 
 ## Execution Plan
@@ -111,6 +112,8 @@ Acceptance checks:
 - `src/workflow/streaming-checkpoint.ts`: streaming checkpoint records and reconstruction.
 - `src/workflow/replan.ts`: self-feeding follow-up sprint generation.
 - `src/workflow/management-api.ts`: local management summary contract.
+- `src/server/index.ts`: local Hono backend API server.
+- `ui/src/App.tsx`: Vite-React dashboard implementation.
 - `tests/poc-management-api.ts`: offline validation for management summary and checkpoint integration.
 
 ## Next Steps

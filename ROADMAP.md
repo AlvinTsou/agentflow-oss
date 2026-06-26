@@ -98,20 +98,16 @@ This release starts the management-platform path without introducing a web serve
 - **Management API contract:** Define the future local dashboard data shapes for sprint summaries, events, checkpoints, and control actions.
 - **Offline validation:** Cover checkpoint writing and reading with a mock sprint run.
 
+## v1.8 -- Web UI Dashboard (Completed)
+
+This release implements a backend Hono server and a Vite-React dashboard UI.
+
+- **Hono Backend API Server:** Exposes endpoints to retrieve real-time summaries, events, and streaming checkpoints, and to post control actions directly back to local sprint directories.
+- **Vite-React Dashboard:** Implements a sleek responsive frontend dashboard displaying execution statistics, detailed logs, token/cost charts, phase timelines, and interactive controls.
+
 ## Future
 
 These items are on the long-term radar but not yet scoped in detail.
-
-### Web UI
-
-A web-based interface for managing sprints, reviewing artifacts, and
-monitoring workflow progress. This will be developed as a separate module
-and will not affect the CLI-first architecture.
-
-- Sprint dashboard with real-time status.
-- Side-by-side artifact diff viewer.
-- Inline approval and change-request interface.
-- Feedback submission through the browser.
 
 ### Additional Recipes
 

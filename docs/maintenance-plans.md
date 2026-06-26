@@ -12,8 +12,8 @@ This document consolidates the weekly active maintenance plans for `agentflow-os
 - **Week 5 Plan**: **Completed**. The `pr-review` recipe is defined, exposed through init, covered by offline tests and fixtures, and wired to git diff context ingestion.
 - **Week 6 Plan**: **Completed**. Pages accuracy, PR review documentation, route audit examples, security review scoping, and weekly verification are recorded in the Week 6 maintenance log.
 - **Week 7 Work**: **Completed**. Security review hardening, `api-design-review` recipe initialization, conditional step execution, trigger registry support, sprint outcome indexing, and parallel `forEach` execution are recorded in the Week 7 maintenance log and covered by offline tests.
-- **Week 8 Work**: **Completed**. Phase B continuation (streaming checkpoint resume support, self-feeding loops), Phase C (regression eval suite, multi-model consensus voting), webhook notifications (config parsing, state-store subscription, async dispatch), v1.7 management checkpoint foundation (management-api.ts, sprint summary aggregation, checkpoint reading, multilingual roadmap sync), and concept-doc closeout are implemented and covered by tests.
-- **Next Maintenance Focus**: **Reconcile planning and status docs**. Reconcile the public maintenance schedule and planning documentation with the currently shipped repo state before starting subsequent feature slices.
+- **Week 8 Work**: **Completed**. Phase B continuation (streaming checkpoint resume support, self-feeding loops), Phase C (regression eval suite, multi-model consensus voting), webhook notifications, v1.7 management checkpoint foundation, v1.8 Web UI Dashboard (Hono backend API server, Vite-React frontend dashboard), and concept-doc closeout are implemented and covered by tests.
+- **Next Maintenance Focus**: **Visual tooling extension and security policy audit**. Expand the Web UI with interactive step-diff viewing, extend multi-model consensus visualization, and prepare for Week 9 security policy hardening.
 
 ---
 
