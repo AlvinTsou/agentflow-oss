@@ -12,7 +12,13 @@ import {
   GitBranch,
   Search,
   Eye,
-  Sliders
+  Sliders,
+  CheckCircle2,
+  XCircle,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  X
 } from 'lucide-react'
 import './App.css'
 
@@ -66,6 +72,117 @@ interface SprintEvent {
   };
 }
 
+interface DiffLine {
+  type: 'added' | 'removed' | 'unchanged';
+  content: string;
+}
+
+function computeDiff(oldText: string, newText: string): DiffLine[] {
+  const oldLines = oldText.split('\n');
+  const newLines = newText.split('\n');
+  const dp: number[][] = Array(oldLines.length + 1).fill(0).map(() => Array(newLines.length + 1).fill(0));
+  
+  for (let i = 1; i <= oldLines.length; i++) {
+    for (let j = 1; j <= newLines.length; j++) {
+      if (oldLines[i - 1] === newLines[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+  
+  let i = oldLines.length;
+  let j = newLines.length;
+  const diff: DiffLine[] = [];
+  
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && oldLines[i - 1] === newLines[j - 1]) {
+      diff.unshift({ type: 'unchanged', content: oldLines[i - 1] });
+      i--;
+      j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      diff.unshift({ type: 'added', content: newLines[j - 1] });
+      j--;
+    } else {
+      diff.unshift({ type: 'removed', content: oldLines[i - 1] });
+      i--;
+    }
+  }
+  
+  return diff;
+}
+
+interface ConsensusReport {
+  verdict: 'PASS' | 'FAIL';
+  positiveVotes: number;
+  totalVotes: number;
+  requiredVotes: number;
+  averageScore: number;
+  voters: Array<{
+    provider: string;
+    score: number | 'N/A';
+    verdict: 'PASS' | 'FAIL';
+    feedback: string;
+  }>;
+}
+
+function parseConsensusReport(text: string | undefined): ConsensusReport | null {
+  if (!text || !text.includes('# Consensus Voting Report')) return null;
+  
+  try {
+    const verdictMatch = text.match(/- Verdict:\s*\*\*(PASS|FAIL)\*\*/i);
+    const votesMatch = text.match(/- Positive Votes:\s*\*\*(\d+)\*\*\s*\/\s*\*\*(\d+)\*\*\s*\(Required:\s*\*\*(\d+)\*\*\)/i);
+    const scoreMatch = text.match(/- Average Score:\s*\*\*(\d+)\*\*/i);
+    
+    if (!verdictMatch) return null;
+    
+    const verdict = verdictMatch[1].toUpperCase() as 'PASS' | 'FAIL';
+    const positiveVotes = votesMatch ? parseInt(votesMatch[1]) : 0;
+    const totalVotes = votesMatch ? parseInt(votesMatch[2]) : 0;
+    const requiredVotes = votesMatch ? parseInt(votesMatch[3]) : 0;
+    const averageScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+    
+    const voters: ConsensusReport['voters'] = [];
+    const sections = text.split('### Voter:');
+    
+    for (let k = 1; k < sections.length; k++) {
+      const section = sections[k];
+      const lines = section.split('\n');
+      const provider = lines[0].trim();
+      
+      const scoreMatchInside = section.match(/Score:\s*([0-9.]+|N\/A)\s*\((PASS|FAIL)\)/i);
+      const scoreVal = scoreMatchInside ? (scoreMatchInside[1] === 'N/A' ? 'N/A' : parseFloat(scoreMatchInside[1])) : 'N/A';
+      const voterVerdict = scoreMatchInside ? scoreMatchInside[2].toUpperCase() as 'PASS' | 'FAIL' : 'FAIL';
+      
+      const doubleNLIndex = section.indexOf('\n\n');
+      let feedback = '';
+      if (doubleNLIndex !== -1) {
+        feedback = section.substring(doubleNLIndex + 2).trim();
+      }
+      
+      voters.push({
+        provider,
+        score: scoreVal as any,
+        verdict: voterVerdict,
+        feedback
+      });
+    }
+    
+    return {
+      verdict,
+      positiveVotes,
+      totalVotes,
+      requiredVotes,
+      averageScore,
+      voters
+    };
+  } catch (err) {
+    console.error('Failed to parse consensus report:', err);
+    return null;
+  }
+}
+
 function App() {
   const [sprints, setSprints] = useState<SprintSummary[]>([])
   const [selectedSprintId, setSelectedSprintId] = useState<string | null>(null)
@@ -78,6 +195,8 @@ function App() {
   const [checkpoints, setCheckpoints] = useState<StreamingCheckpoint[]>([])
   const [events, setEvents] = useState<SprintEvent[]>([])
   const [selectedCheckpoint, setSelectedCheckpoint] = useState<StreamingCheckpoint | null>(null)
+  const [showDiff, setShowDiff] = useState(false)
+  const [activeVoterIdx, setActiveVoterIdx] = useState<number | null>(null)
 
   // Control Form
   const [actionType, setActionType] = useState<string>('approve')
@@ -153,6 +272,12 @@ function App() {
     }
   }, [selectedSprintId])
 
+  // Reset view settings when selected checkpoint changes
+  useEffect(() => {
+    setShowDiff(false)
+    setActiveVoterIdx(null)
+  }, [selectedCheckpoint])
+
   const selectedSprint = sprints.find(s => s.sprintId === selectedSprintId)
 
   // Handle Control Action Submission
@@ -208,6 +333,94 @@ function App() {
     } catch {
       return isoStr
     }
+  }
+
+  const selectedIndex = checkpoints.findIndex(cp => cp === selectedCheckpoint)
+  const previousCheckpoint = selectedIndex > 0 ? checkpoints[selectedIndex - 1] : null
+
+  const renderDiff = (oldText: string, newText: string) => {
+    const diff = computeDiff(oldText, newText)
+    return (
+      <div className="diff-view">
+        {diff.map((line, idx) => {
+          let lineClass = 'diff-line-unchanged'
+          let prefix = ' '
+          if (line.type === 'added') {
+            lineClass = 'diff-line-added'
+            prefix = '+'
+          } else if (line.type === 'removed') {
+            lineClass = 'diff-line-removed'
+            prefix = '-'
+          }
+          return (
+            <div key={idx} className={`diff-line ${lineClass}`}>
+              <span className="diff-prefix">{prefix}</span>
+              <span className="diff-content">{line.content}</span>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  const renderContentOrConsensus = (cp: StreamingCheckpoint) => {
+    const report = parseConsensusReport(cp.outputPreview)
+    if (report) {
+      return (
+        <div className="consensus-visualization">
+          <div className={`consensus-verdict-card ${report.verdict.toLowerCase()}`}>
+            <div className="verdict-icon-text">
+              {report.verdict === 'PASS' ? (
+                <CheckCircle2 size={24} className="text-success" />
+              ) : (
+                <XCircle size={24} className="text-danger" />
+              )}
+              <div>
+                <h4 className="verdict-title">Consensus Verdict: {report.verdict}</h4>
+                <p className="verdict-subtitle">
+                  Passed: {report.positiveVotes} / {report.totalVotes} (Threshold: {report.requiredVotes})
+                </p>
+              </div>
+            </div>
+            <div className="consensus-score-box">
+              <span className="score-val">{report.averageScore}</span>
+              <span className="score-label">Avg Score</span>
+            </div>
+          </div>
+
+          <div className="voters-grid">
+            {report.voters.map((voter, idx) => {
+              const isOpen = activeVoterIdx === idx
+              return (
+                <div key={idx} className={`voter-detail-card ${voter.verdict.toLowerCase()} ${isOpen ? 'open' : ''}`}>
+                  <div className="voter-card-header" onClick={() => setActiveVoterIdx(isOpen ? null : idx)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {voter.verdict === 'PASS' ? <Check size={14} className="text-success" /> : <X size={14} className="text-danger" />}
+                      <span className="voter-provider">{voter.provider}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span className="voter-score">Score: {voter.score}</span>
+                      {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </div>
+                  </div>
+                  {isOpen && (
+                    <div className="voter-feedback-body">
+                      <pre className="voter-feedback-text">{voter.feedback}</pre>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <pre className="preview-code-block">
+        {cp.outputPreview}
+      </pre>
+    )
   }
 
   return (
@@ -419,15 +632,34 @@ function App() {
                             <h3>Checkpoint: {selectedCheckpoint.step} ({selectedCheckpoint.phase})</h3>
                             <p>SHA-256: {selectedCheckpoint.outputSha256}</p>
                           </div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
-                            <div>Duration: {selectedCheckpoint.durationMs}ms</div>
-                            <div>Artifact: {selectedCheckpoint.artifactPath}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            {previousCheckpoint && (
+                              <button
+                                onClick={() => setShowDiff(!showDiff)}
+                                className={`tab-btn ${showDiff ? 'active' : ''}`}
+                                style={{
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '6px',
+                                  border: '1px solid var(--border-color)',
+                                  fontSize: '0.8rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {showDiff ? 'Show Content' : 'Show Diff vs Prev'}
+                              </button>
+                            )}
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                              <div>Duration: {selectedCheckpoint.durationMs}ms</div>
+                              <div>Artifact: {selectedCheckpoint.artifactPath}</div>
+                            </div>
                           </div>
                         </div>
                         <div className="preview-body">
-                          <pre className="preview-code-block">
-                            {selectedCheckpoint.outputPreview}
-                          </pre>
+                          {showDiff && previousCheckpoint ? (
+                            renderDiff(previousCheckpoint.outputPreview, selectedCheckpoint.outputPreview)
+                          ) : (
+                            renderContentOrConsensus(selectedCheckpoint)
+                          )}
                         </div>
                       </div>
                     )}
