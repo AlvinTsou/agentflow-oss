@@ -37,6 +37,34 @@ function assertPolicyRedacts() {
   assert(redacted.messages[0]?.content.includes("[REDACTED:openai-api-key]") ?? false, "secret was redacted");
 }
 
+function assertPolicyRedactsDocumentedSecretPatterns() {
+  console.log("[test A2] middleman policy redacts documented secret patterns");
+  const request: MiddlemanRequest = {
+    messages: [
+      {
+        role: "user",
+        content:
+          "Authorization: Bearer abcdefghijklmnopqrstuvwxyz123456\n" +
+          "DATABASE_URL=postgres://user:pass@example.com:5432/app\n" +
+          "password = supersecretvalueabcdefghijklmnopqrstuvwxyz",
+      },
+    ],
+  };
+  const findings = scanSecrets(request);
+  const redacted = applyMiddlemanPolicy(request, { redactSecrets: true });
+  const body = redacted.messages[0]?.content ?? "";
+
+  assert(findings.some((finding) => finding.kind === "bearer-token"), "bearer token finding recorded");
+  assert(findings.some((finding) => finding.kind === "connection-string"), "connection string finding recorded");
+  assert(
+    findings.some((finding) => finding.kind === "suspicious-secret-assignment"),
+    "suspicious assignment finding recorded",
+  );
+  assert(body.includes("[REDACTED:bearer-token]"), "bearer token was redacted");
+  assert(body.includes("[REDACTED:connection-string]"), "connection string was redacted");
+  assert(body.includes("[REDACTED:suspicious-secret-assignment]"), "suspicious assignment was redacted");
+}
+
 function assertPolicyBlocks() {
   console.log("[test B] middleman policy can block instead of redact");
   const request: MiddlemanRequest = {
@@ -448,6 +476,7 @@ function assertCustomRedactions() {
 
 async function main() {
   assertPolicyRedacts();
+  assertPolicyRedactsDocumentedSecretPatterns();
   assertPolicyBlocks();
   assertProtocolFormatsRoles();
   await assertMiddlemanRoutesAndAppliesPolicy();

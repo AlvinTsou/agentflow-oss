@@ -109,6 +109,11 @@ export interface SprintEvent {
     warnings?: string[];
     policyProfile?: string;
   };
+  /** Web-originated control action metadata, appended by the local management server. */
+  webAction?: {
+    action: "approve" | "request-changes" | "force-pass" | "resume" | "pin-iter";
+    note?: string;
+  };
 }
 
 export class StateStore {

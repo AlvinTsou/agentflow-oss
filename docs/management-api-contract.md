@@ -1,8 +1,16 @@
 # Management API Contract
 
-This document defines the data contract for a future AgentFlow management UI.
-It is intentionally server-agnostic: the current CLI writes local JSON files,
-and a future local web server can expose these shapes over HTTP or WebSocket.
+This document defines the data contract for the local AgentFlow management UI.
+The CLI writes local JSON files, and the local Hono server exposes these shapes
+over HTTP for dashboard use.
+
+Security boundary:
+
+- The management server is intended for loopback use and binds to `127.0.0.1`
+  by default.
+- CORS is allowlisted for trusted local development origins by default.
+- There is no built-in authentication. Do not expose the server publicly without
+  an external access-control layer.
 
 ## Sprint Summary
 
@@ -81,8 +89,8 @@ for dashboard progress, partial-output inspection, and recovery diagnostics.
 
 `POST /api/sprints/:id/actions`
 
-The future web layer should map user actions to the existing CLI-safe files and
-commands rather than mutating engine internals directly.
+The web layer maps user actions to typed web-originated events and appends them
+to `events.jsonl` rather than mutating engine internals directly.
 
 ```json
 {
@@ -100,5 +108,5 @@ Supported action names:
 - `resume`
 - `pin-iter`
 
-The server must append corresponding web-originated events to `events.jsonl`
-and then invoke the existing CLI command path where execution is required.
+The server appends corresponding web-originated events to `events.jsonl`.
+Execution still remains coordinated through the existing CLI/runner paths.

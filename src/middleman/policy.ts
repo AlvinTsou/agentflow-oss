@@ -40,6 +40,15 @@ const SECRET_PATTERNS: Array<{ kind: string; regex: RegExp }> = [
   { kind: "anthropic-api-key", regex: /\bsk-ant-[A-Za-z0-9_-]{20,}\b/g },
   { kind: "openai-api-key", regex: /\bsk-[A-Za-z0-9_-]{20,}\b/g },
   { kind: "aws-access-key", regex: /\bAKIA[0-9A-Z]{16}\b/g },
+  { kind: "bearer-token", regex: /\bBearer\s+[A-Za-z0-9._~+/=-]{20,}\b/g },
+  {
+    kind: "connection-string",
+    regex: /\b(?:postgres|postgresql|mysql|mongodb|redis):\/\/[^\s"'`]+/gi,
+  },
+  {
+    kind: "suspicious-secret-assignment",
+    regex: /\b(?:password|passwd|secret|token|api[_-]?key)\s*[:=]\s*["']?[A-Za-z0-9+/=_-]{24,}["']?/gi,
+  },
   {
     kind: "private-key-block",
     regex: /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,

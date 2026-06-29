@@ -9,9 +9,9 @@
 agentflow-oss gives maintainers a structured sprint engine that orchestrates
 AI model calls through review gates, readiness checks, and carry-over controls.
 Every sprint follows a recipe -- a sequence of produce/review/fix steps -- and
-every AI output is gated before it advances. Secrets stay local, model calls go
-through a policy layer, and nothing ships without passing the readiness
-pipeline.
+every AI output is gated before it advances. Provider credentials stay out of
+sprint artifacts and logs, model prompts go through a policy layer, and nothing
+ships without passing the readiness pipeline.
 
 This is not a universal AI proxy or chat wrapper. It is a workflow engine
 designed for maintainers who need repeatable, auditable, policy-controlled
@@ -19,8 +19,10 @@ AI-assisted development.
 
 ## Key Properties
 
-- **Secrets stay local.** API keys and tokens never leave your machine.
-  The policy layer redacts sensitive content before model calls.
+- **Credentials are contained.** API keys and tokens are read from local
+  environment/config inputs for provider authentication and are not written to
+  sprint artifacts, state files, or logs. The policy layer redacts sensitive
+  prompt content before model calls.
 - **Review gates.** Every step output goes through a quality loop
   (produce, review, fix) with configurable score thresholds.
 - **Readiness checks.** After a sprint completes, review and wrap artifacts

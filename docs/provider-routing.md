@@ -151,7 +151,7 @@ text for patterns matching known secret formats:
 | Bearer tokens | `Bearer eyJ...` |
 | Connection strings | `postgres://user:pass@...` |
 | Private keys | `-----BEGIN RSA PRIVATE KEY-----` |
-| Generic secrets | Values matching `[A-Za-z0-9+/]{40,}` in suspicious contexts |
+| Suspicious assignments | `password = ...`, `token: ...`, `api_key = ...` |
 
 Detected secrets are replaced with `[REDACTED]` before the prompt is sent.
 A warning is logged when redaction occurs.
@@ -162,15 +162,15 @@ leakage to model providers.
 
 ### Token Estimation
 
-Before dispatching a request, the policy layer estimates the token count of
-the prompt to:
+When `policy.maxEstimatedTokens` is configured, the policy layer estimates the
+token count of the prompt to:
 
-- **Warn** if the prompt is approaching the model's context window limit.
-- **Reject** if the prompt exceeds the model's maximum context length,
+- **Reject** if the prompt exceeds the configured maximum,
   preventing wasted API calls and unclear error messages.
 
 Token estimation uses a fast heuristic (character-based approximation) rather
-than a full tokenizer, so estimates are conservative.
+than a full tokenizer. If `maxEstimatedTokens` is not configured, token
+estimation is recorded by providers but does not block dispatch by itself.
 
 ### Security Profiles
 

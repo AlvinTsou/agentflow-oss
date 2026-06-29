@@ -31,25 +31,30 @@ responsibly. **Do not open a public GitHub issue.**
    - **Initial assessment:** Within 7 business days.
    - **Fix or mitigation:** Target within 30 days for critical issues.
 
-## Secret Handling
+## Secret And Credential Handling
 
-agentflow-oss is designed so that secrets never leave the local machine
-during normal operation:
+agentflow-oss is designed to keep provider credentials out of sprint artifacts,
+state files, and logs during normal operation:
 
 - **API keys** (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`,
-  `GEMINI_API_KEY`) are read from environment variables and used only for
-  outbound model API calls. They are never written to state files, artifacts,
-  or logs.
+  `GEMINI_API_KEY`) are read from environment variables or explicit provider
+  options and used only as authentication material for outbound model API calls.
+  They are not written to state files, artifacts, or logs by agentflow-oss.
 
 - **Policy layer redaction.** Before any prompt is sent to a model provider,
   the Middleman policy layer scans for patterns that match known secret
-  formats (API keys, tokens, passwords) and redacts them. This is a
-  defense-in-depth measure -- prompts should not contain secrets in the first
-  place, but the policy layer acts as a safety net.
+  formats (API keys, bearer tokens, connection strings, private keys, suspicious
+  password/token assignments, and configured custom redaction patterns) and
+  redacts them. This is a defense-in-depth measure -- prompts should not contain
+  secrets in the first place, but the policy layer acts as a safety net.
 
 - **State files** (`state.json`, `events.jsonl`) contain sprint metadata,
   step results, and quality scores. They do not contain API keys or raw
   model responses that might include reflected secrets.
+
+- **Artifacts and checkpoints** contain model-produced content and short output
+  previews. Treat sprint directories as sensitive project data, especially when
+  prompts or model responses may reference proprietary code or internal details.
 
 - **Git checkpoints** are local repositories. They are not pushed to any
   remote unless you explicitly configure a remote and push.
@@ -61,7 +66,8 @@ during normal operation:
 ## Security Design Principles
 
 1. **Local-first.** All state, artifacts, and configuration remain on the
-   local filesystem. No telemetry, no cloud sync, no external data stores.
+   local filesystem unless a configured provider call or webhook explicitly
+   sends data out. No telemetry, no cloud sync, no external data stores.
 
 2. **Policy-gated model calls.** Every model call passes through the
    Middleman policy layer, which enforces secret redaction and token
@@ -74,6 +80,29 @@ during normal operation:
 
 4. **Readiness checks.** Sprint outputs are subject to readiness analysis
    that flags blocking carry-overs before the work is considered complete.
+
+## Local Management Server
+
+The optional management server is a local dashboard API, not a hosted control
+plane.
+
+- It binds to `127.0.0.1` by default. Set `AGENTFLOW_HOST` only when you
+  intentionally want a different bind address.
+- CORS is restricted to local development origins by default:
+  `http://localhost:3000`, `http://127.0.0.1:3000`,
+  `http://localhost:5173`, and `http://127.0.0.1:5173`. Override with
+  `AGENTFLOW_ALLOWED_ORIGINS` only for trusted origins.
+- The server has no built-in authentication. Do not expose it on a public
+  network without an external access-control layer.
+- Web actions are limited to the supported action names and are appended as
+  typed web-originated events in `events.jsonl`.
+
+## Webhook Delivery
+
+Webhook notifications are user-configured outbound HTTP requests. Only configure
+trusted webhook URLs, because event payloads may include sprint metadata, route
+metadata, token/cost counters, and step status. Webhook failures are logged but
+do not block the main sprint runner.
 
 ## Disclosure Timeline
 
@@ -93,6 +122,9 @@ we will accelerate this timeline.
 The following are in scope for security reports:
 
 - Secret leakage through logs, state files, artifacts, or model prompts.
+- Unauthorized access to the local management server when it is intentionally
+  exposed beyond loopback.
+- Unsafe webhook disclosure of sprint metadata to untrusted destinations.
 - Arbitrary code execution through crafted recipes or INPUT.md files.
 - Path traversal or file-write vulnerabilities in artifact IO.
 - Authentication bypass in provider routing.

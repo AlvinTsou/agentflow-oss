@@ -13,8 +13,8 @@ This document consolidates the weekly active maintenance plans for `agentflow-os
 - **Week 6 Plan**: **Completed**. Pages accuracy, PR review documentation, route audit examples, security review scoping, and weekly verification are recorded in the Week 6 maintenance log.
 - **Week 7 Work**: **Completed**. Security review hardening, `api-design-review` recipe initialization, conditional step execution, trigger registry support, sprint outcome indexing, and parallel `forEach` execution are recorded in the Week 7 maintenance log and covered by offline tests.
 - **Week 8 Work**: **Completed**. Phase B continuation (streaming checkpoint resume support, self-feeding loops), Phase C (regression eval suite, multi-model consensus voting), webhook notifications, v1.7 management checkpoint foundation, v1.8 Web UI Dashboard (Hono backend API server, Vite-React frontend dashboard), and concept-doc closeout are implemented and covered by tests.
-- **Week 9 Work**: **In Progress**. Visual tooling extension has started with interactive step-diff viewing and consensus-voting visualization in the Web UI. The remaining focus is security policy audit, verification, and publish hygiene.
-- **Next Maintenance Focus**: **Security policy hardening and public status sync**. Review the security model, update public docs after verification, and keep CI/Pages status aligned with shipped code.
+- **Week 9 Work**: **In Progress**. Visual tooling extension has started with interactive step-diff viewing and consensus-voting visualization in the Web UI. Security policy audit hardening is underway for redaction coverage, local management server boundaries, webhook disclosure guidance, and public docs.
+- **Next Maintenance Focus**: **Security policy closeout and public status sync**. Finish verification, publish the security audit changes, and keep CI/Pages status aligned with shipped code.
 
 ---
 
