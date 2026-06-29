@@ -2,10 +2,10 @@
 
 This document consolidates the weekly active maintenance plans for `agentflow-oss` and tracks the current implementation status.
 
-## Current Verification Status (As of 2026-06-25)
+## Current Verification Status (As of 2026-06-29)
 
-- **GitHub Pages**: **Live**. Repository Pages is enabled, the configured source is `main:/docs`, public URL and latest Pages deployment are healthy, but the Pages API currently reports `errored`, HTTPS is enforced, and `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
-- **Latest GitHub Actions Check**: **Green**. Recent `CI` and `pages-build-deployment` runs on `main` completed successfully.
+- **GitHub Pages**: **Live**. Repository Pages is enabled, the configured source is `main:/docs`, the Pages API reports `built`, HTTPS is enforced, and `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
+- **Latest GitHub Actions Check**: **Green**. Recent `CI` and `pages-build-deployment` runs on `main` completed successfully before the Week 9 schedule update.
 - **Week 1 Plan**: **Completed**. OpenAI-compatible gateway smoke test CLI, SDD walkthrough documentation, provider capability registry, capability validation, route metadata, security profiles, and route audit logging are implemented and covered by tests.
 - **Week 2 / Week 3 Work**: **Completed**. Release-readiness recipe integration, offline fixtures, custom redaction policy behavior, documentation, and roadmap synchronization are represented in the repo maintenance logs.
 - **Week 4 Plan**: **Completed**. PR review recipe proposal, release-readiness hardening, route audit replay formatting, status CLI layout improvements, and custom redaction config-loader integration are complete.
@@ -13,7 +13,81 @@ This document consolidates the weekly active maintenance plans for `agentflow-os
 - **Week 6 Plan**: **Completed**. Pages accuracy, PR review documentation, route audit examples, security review scoping, and weekly verification are recorded in the Week 6 maintenance log.
 - **Week 7 Work**: **Completed**. Security review hardening, `api-design-review` recipe initialization, conditional step execution, trigger registry support, sprint outcome indexing, and parallel `forEach` execution are recorded in the Week 7 maintenance log and covered by offline tests.
 - **Week 8 Work**: **Completed**. Phase B continuation (streaming checkpoint resume support, self-feeding loops), Phase C (regression eval suite, multi-model consensus voting), webhook notifications, v1.7 management checkpoint foundation, v1.8 Web UI Dashboard (Hono backend API server, Vite-React frontend dashboard), and concept-doc closeout are implemented and covered by tests.
-- **Next Maintenance Focus**: **Visual tooling extension and security policy audit**. Expand the Web UI with interactive step-diff viewing, extend multi-model consensus visualization, and prepare for Week 9 security policy hardening.
+- **Week 9 Work**: **In Progress**. Visual tooling extension has started with interactive step-diff viewing and consensus-voting visualization in the Web UI. The remaining focus is security policy audit, verification, and publish hygiene.
+- **Next Maintenance Focus**: **Security policy hardening and public status sync**. Review the security model, update public docs after verification, and keep CI/Pages status aligned with shipped code.
+
+---
+
+## Week 9 Active Maintenance Plan
+
+This plan covers the next maintenance cycle for `agentflow-oss`, starting 2026-06-29.
+
+### Week Objective
+
+By the end of the week, the project should have:
+
+- Published Web UI visual tooling improvements for step diffs and consensus voting.
+- A completed security policy audit across documented threat model, local state behavior, provider routing, redaction, webhook delivery, and dashboard/server surfaces.
+- Public maintenance docs synchronized with the shipped state after CI and Pages deployment are green.
+
+### Current Baseline
+
+- Week 8 work is complete: Loop Engineering Phase B/C, webhook notifications, v1.7 management checkpoint foundation, v1.8 Web UI dashboard, multilingual docs sync, and concept-doc closeout.
+- Local Week 9 visual tooling work exists in `ui/src/App.tsx`, `ui/src/App.css`, and `tests/eval/eval-report.md`.
+- GitHub Pages API currently reports `built`; public Pages returns `HTTP/2 200`.
+
+### Day 1 - Publish Visual Tooling And Schedule Update
+
+- Purpose: ship the already implemented Web UI visual tooling and make planning docs current.
+- Work:
+  - Publish interactive step-diff viewing and consensus-voting visualization.
+  - Update `weeks_work_summary.md`, `docs/maintenance-plans.md`, and `ROADMAP.md`.
+  - Verify `pnpm run test`, `git diff --check`, GitHub Actions, and Pages.
+- Suggested commit:
+
+```text
+docs(maintenance): plan week 9 security policy audit
+```
+
+### Day 2 - Security Policy Source Audit
+
+- Purpose: make the security audit source-backed before changing public claims.
+- Work:
+  - Re-read `SECURITY.md`, `README.md`, `docs/architecture.md`, route/provider docs, webhook code, and server/dashboard surfaces.
+  - Record any mismatches between documented guarantees and implementation behavior.
+  - Classify findings as blocking, non-blocking, or documentation-only.
+
+### Day 3 - Security Policy Hardening
+
+- Purpose: fix confirmed gaps with narrow implementation or docs changes.
+- Work:
+  - Tighten wording for local files, git checkpoints, sprint artifacts, route audit logs, and webhook payloads.
+  - Add or adjust tests only for behavior that is enforced by code.
+  - Keep policy claims explicit about local-first scope and non-goals.
+
+### Day 4 - Public Docs And Pages Sync
+
+- Purpose: keep the OSS surface consistent for readers.
+- Work:
+  - Sync `README.md`, `SECURITY.md`, `ROADMAP.md`, and public Pages language variants if user-facing status changed.
+  - Avoid claiming security guarantees that are not enforced by code or tests.
+
+### Day 5 - Week 9 Closeout
+
+- Purpose: leave a durable maintenance trail.
+- Work:
+  - Add `docs/maintenance-log/2026-06-week-9.md`.
+  - Re-run validation.
+  - Confirm `main` is pushed, CI is green, and Pages is live.
+
+### Weekly Success Criteria
+
+The week is successful when:
+
+- Web UI visual tooling improvements are published and represented in docs.
+- Security policy claims are source-backed and match implementation behavior.
+- CI, Pages deployment, and public Pages health are verified after the final push.
+- The maintenance log records what shipped, what was audited, and any remaining risks.
 
 ---
 

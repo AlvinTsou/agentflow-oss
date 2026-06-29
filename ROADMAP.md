@@ -105,6 +105,14 @@ This release implements a backend Hono server and a Vite-React dashboard UI.
 - **Hono Backend API Server:** Exposes endpoints to retrieve real-time summaries, events, and streaming checkpoints, and to post control actions directly back to local sprint directories.
 - **Vite-React Dashboard:** Implements a sleek responsive frontend dashboard displaying execution statistics, detailed logs, token/cost charts, phase timelines, and interactive controls.
 
+## v1.9 -- Visual Tooling & Security Policy Audit (In Progress)
+
+This release extends the dashboard's diagnostic surfaces and tightens the project's public security posture.
+
+- **Interactive Step Diffs:** Surface per-step output deltas in the Web UI so maintainers can inspect changes without leaving the dashboard.
+- **Consensus Voting Visualization:** Show multi-model voting outcomes and confidence signals alongside sprint execution details.
+- **Security Policy Audit:** Reconcile `SECURITY.md`, architecture docs, provider routing, local state behavior, webhook delivery, and dashboard/server surfaces against the current implementation.
+
 ## Future
 
 These items are on the long-term radar but not yet scoped in detail.

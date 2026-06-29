@@ -1,16 +1,15 @@
 # AgentFlow OSS Weekly Resume
 
-Updated: 2026-06-25
+Updated: 2026-06-29
 
 ## Resume Snapshot
 
 - Worktree: `~/Documents/Projects/agentflow-oss`
 - Current branch: `main`
 - Remote tracking: `origin/main`
-- Worktree status after this update: clean (except this update-and-plan pass edits to documentation)
-- PR / issue: no active PR checked in this handoff; Issue #5 was previously closed by the concept document update.
-- Head commit: `d09fe10` (`feat(ui): implement hono backend server and vite-react dashboard`)
-- Remote head: `origin/main` at `d09fe10`
+- Worktree status before this schedule update: clean, with local `main` ahead of `origin/main` by 2 commits.
+- Latest completed feature commit before this summary update: `ae0bcae` (`feat(ui): add interactive step-diff and consensus-voting visualization`)
+- Previous remote head before this publish pass: `origin/main` at `d09fe10` (`feat(ui): implement hono backend server and vite-react dashboard`)
 - Public Pages URL: `https://alvintsou.github.io/agentflow-oss/`
 - Pages source: `main:/docs`
 
@@ -22,41 +21,39 @@ git status --short --branch
 
 ## Current Status
 
-`main` is synchronized with `origin/main` at commit `d09fe10`, and this update-and-plan pass leaves uncommitted documentation edits to reconcile the schedule. The latest remote `CI` run and the latest `pages-build-deployment` run on `main` both completed successfully on 2026-06-25. The public GitHub Pages URL returns `HTTP/2 200`.
+Week 8 is closed. Loop Engineering Phase B/C, webhook notifications, the v1.7 management checkpoint foundation, the v1.8 Web UI dashboard, multilingual docs sync, and concept-doc closeout are represented in current code, tests, and docs.
 
-The repo has moved beyond the older Week 8 "started" state. Loop Engineering Phase A, Phase B, Phase C, webhook notifications, the v1.7 management checkpoint foundation, and the v1.8 Web UI dashboard (Hono backend server + Vite-React frontend) are implemented and represented in current code/tests/docs. The practical next step is to reconcile planning/status docs so public schedule text matches shipped reality.
+Week 9 has started. The visual tooling extension already has local implementation work for interactive step-diff viewing and consensus-voting visualization in the Web UI. The remaining Week 9 focus is security policy audit and public status synchronization after publish verification.
 
 ## Current Verification
 
-Commands run in this update-and-plan pass:
+Commands run during this schedule check:
 
 ```bash
+git fetch --prune
 git status --short --branch
 git log --oneline --decorate -5
 gh run list --repo AlvinTsou/agentflow-oss --limit 5
 gh api repos/AlvinTsou/agentflow-oss/pages
 curl -I https://alvintsou.github.io/agentflow-oss/
-rg -n '^(#|##|###)|Next|Status|Current|Validation|Risk|Known|Branch|PR|Merge|Week|Phase|Completed|Next Steps' weeks_work_summary.md
-rg -n "Current Verification Status|Week 8|Next Maintenance Focus|Pages API|built|errored|v1\\.7|Phase B|Phase C|webhook|quality-loop-and-clean-context" docs/maintenance-plans.md docs/maintenance-log/2026-06-week-8.md ROADMAP.md weeks_work_summary.md
-wc -l weeks_work_summary.md
-git diff --check
-git diff --stat
-pnpm run test
+rg -n "Week 9|Next Maintenance Focus|Visual tooling|security policy|Updated:|Current Status|Execution Plan|Next Steps|d09fe10|ae0bcae|errored|built" docs/maintenance-plans.md weeks_work_summary.md ROADMAP.md docs/maintenance-log/2026-06-week-8.md
 ```
 
-Observed results:
+Observed results before this docs update:
 
-- Initial `git status --short --branch`: `## main...origin/main` plus `M weeks_work_summary.md`
-- After update: `## main...origin/main` plus modified docs (`weeks_work_summary.md`, `docs/maintenance-plans.md`, `docs/maintenance-log/2026-06-week-8.md`)
-- Latest local/remote head: `d09fe10`
-- Latest `CI` run: `completed success`, run `28150123514`, `2026-06-25T05:58:27Z`
-- Latest `pages-build-deployment` run: `completed success`, run `28150123168`, `2026-06-25T05:58:26Z`
-- Public Pages: `HTTP/2 200`, `last-modified: Thu, 25 Jun 2026 05:58:57 GMT`
-- Pages API: source is `main:/docs`, HTTPS enforced, but `status` currently reports `errored`; treat this as a live API/status mismatch unless rechecked.
-- `docs/maintenance-plans.md` has been successfully refreshed to snapshot date `2026-06-25` with Week 8 Completed.
-- `docs/maintenance-log/2026-06-week-8.md` has been expanded to cover the complete Phase B/C, Webhooks, and v1.7 management features.
-- Local test execution: `pnpm run test` was rerun in the current session (Bypass Sandbox Mode) and passed completely (17 unit/integration tests passed, 4 regression evaluation scenarios passed, privacy secret scan passed).
-- Whitespace validation: `git diff --check` passed without error.
+- `git status --short --branch`: `## main...origin/main [ahead 2]`
+- Local `HEAD`: `ae0bcae` (`feat(ui): add interactive step-diff and consensus-voting visualization`)
+- `origin/main`: `d09fe10` (`feat(ui): implement hono backend server and vite-react dashboard`)
+- Latest listed remote `CI` run before publishing the local commits: `completed success`, run `28164503031`, `2026-06-25T10:42:25Z`
+- Latest listed remote `pages-build-deployment` run before publishing the local commits: `completed success`, run `28164502371`, `2026-06-25T10:42:25Z`
+- Pages API: source is `main:/docs`, HTTPS enforced, `status` is `built`
+- Public Pages: `HTTP/2 200`, `last-modified: Thu, 25 Jun 2026 10:43:15 GMT`
+
+Validation after this docs update:
+
+- `git diff --check`: passed.
+- `pnpm run test`: passed when rerun outside the sandbox because `tests/poc-webhook.ts` needs to bind a local `127.0.0.1` webhook server. The sandboxed run failed only at that local bind step with `listen EPERM`.
+- `tests/eval/eval-report.md` was regenerated by the regression suite with the current timestamp.
 
 ## Completed Work Snapshot
 
@@ -66,58 +63,60 @@ Observed results:
 - Loop Engineering Phase C: regression eval suite and multi-model consensus voting were implemented and tested.
 - Webhook notifications: config parsing, state-store subscription, async dispatch, and integration tests were added.
 - v1.7 Management Checkpoint Foundation: `management-api.ts`, sprint summary aggregation, checkpoint reading, and multilingual roadmap synchronization were added.
-- v1.8 Web UI Dashboard: Hono backend server (`src/server/index.ts`) for reading sprint summaries, events, checkpoints, and posting actions; Vite-React dashboard (`ui/src/App.tsx`) for visual sprint management.
-- Concept docs: `docs/concepts/quality-loop-and-clean-context.md` was added and Issue #5 was closed.
+- v1.8 Web UI Dashboard: Hono backend server (`src/server/index.ts`) and Vite-React dashboard (`ui/src/App.tsx`) were implemented.
+- Week 9 visual tooling start: interactive step-diff viewing and consensus-voting visualization were added locally.
 
 ## Execution Plan
 
-Objective: reconcile the public maintenance schedule with the currently shipped repo state before starting another feature slice.
+Objective: publish the Week 9 visual tooling start, then use the rest of the week for a source-backed security policy audit.
 
 Recommended order:
 
-1. Refresh `docs/maintenance-plans.md`.
-   - Update the top snapshot date to `2026-06-25`.
-   - Replace the stale Pages API `built` claim with the observed split state: public URL and latest Pages deployment are healthy, but the Pages API currently reports `errored`.
-   - Replace "Week 8 Work: Started" with a completed-scope summary covering Phase B continuation, Phase C, webhook notifications, v1.7 management checkpoint foundation, and concept-doc closeout.
-2. Expand `docs/maintenance-log/2026-06-week-8.md`.
-   - Keep the existing first Phase B management-platform slice.
-   - Add concise sections for self-feeding loops, eval regression suite, consensus voting, webhook notifications, management summary APIs, multilingual docs sync, and Issue #5 concept documentation.
-3. Recheck and publish hygiene.
-   - Run `pnpm run test`.
-   - Run `git diff --check`.
-   - Review `git diff --stat` and `git status --short --branch`.
-   - If the docs reconciliation is correct, commit with a docs-focused message.
+1. Publish the local work.
+   - Commit this schedule update.
+   - Push local `main` to `origin/main`.
+   - Watch the new CI and Pages deployment runs.
+2. Verify the public state.
+   - Confirm GitHub Actions `CI` is green.
+   - Confirm `pages-build-deployment` is green.
+   - Recheck Pages API and public URL.
+3. Run Week 9 security policy audit.
+   - Compare `SECURITY.md`, `README.md`, `docs/architecture.md`, provider routing docs, webhook behavior, and server/dashboard surfaces against source.
+   - Fix only confirmed mismatches.
+   - Avoid broad security claims unless they are enforced by code or tests.
+4. Close Week 9.
+   - Add `docs/maintenance-log/2026-06-week-9.md`.
+   - Re-run validation.
+   - Update public docs if the security audit changes user-facing claims.
 
 Acceptance checks:
 
-- `docs/maintenance-plans.md`, `docs/maintenance-log/2026-06-week-8.md`, `ROADMAP.md`, and this file tell the same shipped-vs-next story.
-- No doc says Pages API is `built` unless a fresh API check confirms it.
-- No doc claims a fresh local test pass unless `pnpm run test` has been rerun in the current session.
+- `docs/maintenance-plans.md`, `ROADMAP.md`, and this file all show Week 9 as the active schedule.
+- Published code includes the visual tooling work from `ae0bcae`.
+- CI and Pages are verified after push.
+- Security policy findings are source-backed and separated from speculation.
 
 ## Boundaries
 
-- Do not claim a fresh local `pnpm run test` pass unless rerun in the current session; `git diff --check` has only been rerun for this documentation edit.
-- Do not trust `docs/maintenance-plans.md` top status without rechecking live repo state; it still contains stale Week 8 wording.
-- Do not claim Pages API is `built` right now; live API returned `status: "errored"` even though deployment workflow and public URL are healthy.
-- Keep public docs source-backed: distinguish shipped, active, planned, and future work.
-- Keep the project CLI-first; do not jump straight to a full Web UI before the docs/status reconciliation is clean.
+- Do not claim a fresh local `pnpm run test` pass unless rerun in the current session.
+- Do not claim pushed CI/Pages success until the runs triggered by the push complete.
+- Keep Week 9 security work narrow: audit current behavior first, then change docs or code only where the source proves drift.
+- Keep the project local-first; avoid implying hosted multi-tenant security guarantees.
 
 ## Important Files
 
-- `weeks_work_summary.md`: this compact resume and current maintenance snapshot.
-- `docs/maintenance-plans.md`: stale top-level schedule/status section; should be the next reconciliation target.
-- `docs/maintenance-log/2026-06-week-8.md`: Week 8 durable log; currently shorter than the actual shipped scope.
-- `ROADMAP.md`: current roadmap marks v1.7 Management Checkpoint Foundation completed.
-- `docs/en/index.html`, `docs/zh-tw/index.html`, `docs/zh-cn/index.html`, `docs/ja/index.html`, `docs/ko/index.html`: public Pages status surfaces.
-- `src/workflow/streaming-checkpoint.ts`: streaming checkpoint records and reconstruction.
-- `src/workflow/replan.ts`: self-feeding follow-up sprint generation.
-- `src/workflow/management-api.ts`: local management summary contract.
-- `src/server/index.ts`: local Hono backend API server.
-- `ui/src/App.tsx`: Vite-React dashboard implementation.
-- `tests/poc-management-api.ts`: offline validation for management summary and checkpoint integration.
+- `docs/maintenance-plans.md`: active weekly schedule and Week 9 plan.
+- `weeks_work_summary.md`: compact resume and current execution plan.
+- `ROADMAP.md`: public milestone status, now including v1.9.
+- `ui/src/App.tsx` and `ui/src/App.css`: Week 9 visual tooling implementation.
+- `tests/eval/eval-report.md`: updated eval report data.
+- `SECURITY.md`: next audit target.
+- `docs/architecture.md`: next audit target for local state and workflow claims.
+- `src/server/index.ts`: server/dashboard API security surface.
+- `src/workflow/config-loader.ts` and `src/workflow/sprint-engine.ts`: webhook and provider-routing audit targets.
 
 ## Next Steps
 
-1. Edit `docs/maintenance-plans.md` first; it is the most visibly stale planning source.
-2. Edit `docs/maintenance-log/2026-06-week-8.md` next; it should become the durable evidence log for Week 8 closeout.
-3. Rerun validation and commit only after the planning docs agree with live repo state.
+1. Commit the Week 9 schedule update.
+2. Push `main` and verify CI/Pages.
+3. Start the security policy audit from `SECURITY.md`.
