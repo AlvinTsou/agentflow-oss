@@ -7,8 +7,8 @@ Updated: 2026-07-10
 - Worktree: `~/Documents/Projects/agentflow-oss`
 - Current branch: `main`
 - Remote tracking: `origin/main`
-- Current head: `a573249` (`ci: upgrade actions to node24 runtime`)
-- Remote head: `origin/main` at `a573249`
+- Current head: `358cfc7` (`docs(maintenance): plan week 10 and add architecture status mapping`)
+- Remote head: `origin/main` at `358cfc7`
 - Worktree status at refresh time: clean and synchronized with `origin/main`
 - Public Pages URL: `https://alvintsou.github.io/agentflow-oss/`
 - Pages source: `main:/docs`
@@ -21,11 +21,9 @@ git status --short --branch
 
 ## Current Status
 
-Week 9 is closed. The visual tooling slice and first security policy hardening pass have both shipped, including Middleman redactions, local server hardening, CORS validation, and tests.
+Week 10 is closed. The architecture status mapping has been verified and shipped, mapping the public repository against the HTML report. References in `README.md` are updated, and the Week 10 maintenance log is published.
 
-Week 10 is active. The architecture status mapping is underway to reconcile the public repository against the HTML report. An initial alignment log (`docs/architecture-status.md`) has been drafted, and references in `README.md` are updated.
-
-The repo is clean, pushed, and remotely verified. CI and Pages deployment for `a573249` both completed successfully.
+The repo is clean, pushed, and remotely verified. CI and Pages deployment for `358cfc7` both completed successfully.
 
 ## Current Verification
 
@@ -41,12 +39,12 @@ curl -I https://alvintsou.github.io/agentflow-oss/
 
 Observed results:
 
-- `git status --short --branch`: `## main...origin/main` (with untracked docs/architecture-status.md and modified README.md locally before committing)
-- Current local/remote head: `a573249` (`ci: upgrade actions to node24 runtime`)
-- Latest `CI` run: `completed success`, run `28368874644`, `2026-06-29T11:31:32Z`
-- Latest `pages-build-deployment` run: `completed success`, run `28368873836`, `2026-06-29T11:31:31Z`
+- `git status --short --branch`: `## main...origin/main` (with untracked docs/maintenance-log/2026-07-week-10.md and modified docs/maintenance-plans.md, weeks_work_summary.md locally before committing)
+- Current local/remote head: `358cfc7` (`docs(maintenance): plan week 10 and add architecture status mapping`)
+- Latest `CI` run: `completed success`, run `29074526059`, `2026-07-10T06:41:54Z`
+- Latest `pages-build-deployment` run: `completed success`, run `29074525692`, `2026-07-10T06:41:53Z`
 - Pages API: source is `main:/docs`, HTTPS enforced, `status` is `built`
-- Public Pages: `HTTP/2 200`, `last-modified: Mon, 29 Jun 2026 11:32:27 GMT`
+- Public Pages: `HTTP/2 200`, `last-modified: Fri, 10 Jul 2026 06:42:28 GMT`
 
 Local validation already completed for the shipped security hardening:
 
@@ -65,6 +63,7 @@ Local validation already completed for the shipped security hardening:
 - v1.8 Web UI Dashboard: Hono backend server (`src/server/index.ts`) and Vite-React dashboard (`ui/src/App.tsx`) were implemented.
 - Week 9 visual tooling: interactive step-diff viewing and consensus-voting visualization were shipped.
 - Week 9 security hardening: Middleman redaction coverage was expanded, the management server now defaults to loopback/CORS allowlisting/action validation, web-originated events are typed, and security docs now match implementation behavior.
+- Week 10 architecture status mapping: audited public repository source tree alignment with HTML report, mapped claims, updated references in README.md, and published logs.
 
 ## Execution Plan
 

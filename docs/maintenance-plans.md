@@ -2,10 +2,10 @@
 
 This document consolidates the weekly active maintenance plans for `agentflow-oss` and tracks the current implementation status.
 
-## Current Verification Status (As of 2026-06-29)
+## Current Verification Status (As of 2026-07-10)
 
 - **GitHub Pages**: **Live**. Repository Pages is enabled, the configured source is `main:/docs`, the Pages API reports `built`, HTTPS is enforced, and `https://alvintsou.github.io/agentflow-oss/` returns `HTTP/2 200`.
-- **Latest GitHub Actions Check**: **Green**. Recent `CI` and `pages-build-deployment` runs on `main` completed successfully before the Week 9 schedule update.
+- **Latest GitHub Actions Check**: **Green**. Recent `CI` and `pages-build-deployment` runs on `main` completed successfully after the Week 10 schedule update.
 - **Week 1 Plan**: **Completed**. OpenAI-compatible gateway smoke test CLI, SDD walkthrough documentation, provider capability registry, capability validation, route metadata, security profiles, and route audit logging are implemented and covered by tests.
 - **Week 2 / Week 3 Work**: **Completed**. Release-readiness recipe integration, offline fixtures, custom redaction policy behavior, documentation, and roadmap synchronization are represented in the repo maintenance logs.
 - **Week 4 Plan**: **Completed**. PR review recipe proposal, release-readiness hardening, route audit replay formatting, status CLI layout improvements, and custom redaction config-loader integration are complete.
@@ -14,8 +14,8 @@ This document consolidates the weekly active maintenance plans for `agentflow-os
 - **Week 7 Work**: **Completed**. Security review hardening, `api-design-review` recipe initialization, conditional step execution, trigger registry support, sprint outcome indexing, and parallel `forEach` execution are recorded in the Week 7 maintenance log and covered by offline tests.
 - **Week 8 Work**: **Completed**. Phase B continuation (streaming checkpoint resume support, self-feeding loops), Phase C (regression eval suite, multi-model consensus voting), webhook notifications, v1.7 management checkpoint foundation, v1.8 Web UI Dashboard (Hono backend API server, Vite-React frontend dashboard), and concept-doc closeout are implemented and covered by tests.
 - **Week 9 Work**: **Completed**. Visual tooling extension with interactive step-diff viewing and consensus-voting visualization published. Security policy audit completed with hardened local server boundaries, expanded Middleman redactions, security document corrections, and verification.
-- **Week 10 Work**: **In Progress**. Architecture status mapping is underway to reconcile the public repository source tree against the HTML architecture report. Reviewing code metrics and linking documentation to README.md.
-- **Next Maintenance Focus**: **Architecture alignment closeout and verification**. Publish the mapping, sync weekly status, and confirm remote CI/Pages status.
+- **Week 10 Work**: **Completed**. Reconciled the public repository source tree against the HTML architecture report by publishing the architecture status mapping document (`docs/architecture-status.md`) and updating references in `README.md`.
+- **Next Maintenance Focus**: **Week 11 planning and maintenance task selection**. Update roadmap, check CLI functionality, and define next improvement slice.
 
 ---
 
