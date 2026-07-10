@@ -13,8 +13,55 @@ This document consolidates the weekly active maintenance plans for `agentflow-os
 - **Week 6 Plan**: **Completed**. Pages accuracy, PR review documentation, route audit examples, security review scoping, and weekly verification are recorded in the Week 6 maintenance log.
 - **Week 7 Work**: **Completed**. Security review hardening, `api-design-review` recipe initialization, conditional step execution, trigger registry support, sprint outcome indexing, and parallel `forEach` execution are recorded in the Week 7 maintenance log and covered by offline tests.
 - **Week 8 Work**: **Completed**. Phase B continuation (streaming checkpoint resume support, self-feeding loops), Phase C (regression eval suite, multi-model consensus voting), webhook notifications, v1.7 management checkpoint foundation, v1.8 Web UI Dashboard (Hono backend API server, Vite-React frontend dashboard), and concept-doc closeout are implemented and covered by tests.
-- **Week 9 Work**: **In Progress**. Visual tooling extension has started with interactive step-diff viewing and consensus-voting visualization in the Web UI. Security policy audit hardening is underway for redaction coverage, local management server boundaries, webhook disclosure guidance, and public docs.
-- **Next Maintenance Focus**: **Security policy closeout and public status sync**. Finish verification, publish the security audit changes, and keep CI/Pages status aligned with shipped code.
+- **Week 9 Work**: **Completed**. Visual tooling extension with interactive step-diff viewing and consensus-voting visualization published. Security policy audit completed with hardened local server boundaries, expanded Middleman redactions, security document corrections, and verification.
+- **Week 10 Work**: **In Progress**. Architecture status mapping is underway to reconcile the public repository source tree against the HTML architecture report. Reviewing code metrics and linking documentation to README.md.
+- **Next Maintenance Focus**: **Architecture alignment closeout and verification**. Publish the mapping, sync weekly status, and confirm remote CI/Pages status.
+
+---
+
+## Week 10 Active Maintenance Plan
+
+This plan covers the next maintenance cycle for `agentflow-oss`, starting 2026-07-06.
+
+### Week Objective
+
+By the end of the week, the project should have:
+
+- Audited the core architectural alignment between the public repository source tree and the HTML architecture report.
+- Committed and published the `docs/architecture-status.md` mapping file and updated the references in `README.md`.
+- Verified that the codebase satisfies all local tests and secret scan validations.
+- Synchronized the weekly work summary.
+
+### Current Baseline
+
+- Week 9 visual tooling and security policy audit are successfully shipped and verified.
+- The repository contains untracked `docs/architecture-status.md` and modifications to `README.md`.
+
+### Daily Plan
+
+- **Day 1 - Sync Roadmap and Audit Gaps**:
+  - Analyze the differences between the current repository files and the original architecture report claims.
+  - Draft the mapping of claims to actual shipped modules.
+- **Day 2 - Review and Refine Architecture Mapping**:
+  - Finalize `docs/architecture-status.md` to map source evidence for product identity, command dispatch, and test metrics.
+  - Document recommendations to keep the public repository scope grounded.
+- **Day 3 - Update Project Entry References**:
+  - Update `README.md` to link to the new architecture status map document.
+  - Validate document links and formatting.
+- **Day 4 - Run Full Local Verification**:
+  - Execute `pnpm run test` and `pnpm run test:secret-scan` to ensure all tests pass.
+  - Address any trailing formatting or lint warnings.
+- **Day 5 - Week 10 Closeout and Summary Update**:
+  - Update `weeks_work_summary.md` and `docs/maintenance-plans.md` to reflect Week 10 completion.
+  - Commit and push the changes, verifying the remote CI run.
+
+### Weekly Success Criteria
+
+The week is successful when:
+
+- `docs/architecture-status.md` is committed and publicly referenced from the README.
+- Both local tests and secret-scan pipelines execute successfully.
+- Planning and status documents are aligned and updated.
 
 ---
 

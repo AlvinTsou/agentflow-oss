@@ -131,6 +131,7 @@ The project documentation and homepage are available in multiple languages via [
 ### Detailed Guides & Specifications
 
 - [Architecture Overview](docs/architecture.md)
+- [Architecture Status Mapping](docs/architecture-status.md)
 - [Maintainer Workflows](docs/maintainer-workflows.md)
 - [Provider Routing](docs/provider-routing.md)
 - [CLI Reference](docs/cli-reference.md)
