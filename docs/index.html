@@ -2,16 +2,208 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>agentflow-oss</title>
+  <title>AgentFlow OSS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Maintainer workflow engine for repeatable AI-assisted coding.">
+
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-start: #020617;
+      --bg-end: #0f172a;
+      --primary: #8b5cf6;
+      --primary-glow: rgba(139, 92, 246, 0.15);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --glass-bg: rgba(15, 23, 42, 0.45);
+      --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Floating background glow effects */
+    .glow-orb {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: 0;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .glow-orb-1 {
+      background: #4f46e5;
+      top: -100px;
+      left: -100px;
+      animation: float-1 20s infinite alternate;
+    }
+
+    .glow-orb-2 {
+      background: #c084fc;
+      bottom: -150px;
+      right: -100px;
+      animation: float-2 20s infinite alternate;
+    }
+
+    @keyframes float-1 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 30px) scale(1.1); }
+    }
+
+    @keyframes float-2 {
+      0% { transform: translate(0, 0) scale(1.1); }
+      100% { transform: translate(-40px, -50px) scale(0.9); }
+    }
+
+    /* Container & Card */
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 3rem 2.5rem;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header styling */
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      background: linear-gradient(135deg, #ffffff 30%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+    }
+
+    /* Locale Grid */
+    .locale-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .locale-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-main);
+      text-decoration: none;
+      padding: 1rem 1.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .locale-btn:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .locale-btn span.native-name {
+      font-weight: 600;
+    }
+
+    .locale-btn span.lang-code {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    /* Progress and redirection status */
+    .redirect-status {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .status-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #8b5cf6, #c084fc);
+      border-radius: 2px;
+      animation: progress 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes progress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+  </style>
+
   <script>
     // Detect preferred browser locale and redirect to appropriate subpage
     const supportedLocales = ['en', 'zh-tw', 'zh-cn', 'ja', 'ko'];
     const userLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
     
     let target = 'en';
-    if (userLang.startsWith('zh-tw') || userLang.startsWith('zh-hk')) {
+    if (userLang.startsWith('zh-tw') || userLang.startsWith('zh-hk') || userLang.startsWith('zh-hant')) {
       target = 'zh-tw';
     } else if (userLang.startsWith('zh')) {
       target = 'zh-cn';
@@ -21,19 +213,55 @@
       target = 'ko';
     }
     
-    window.location.replace('./' + target + '/index.html');
+    // Safe redirect that preserves subdirectory path on GitHub Pages
+    const path = window.location.pathname;
+    const basePath = path.endsWith('/') ? path : path + '/';
+
+    // Perform redirect after a short visual transition delay
+    setTimeout(() => {
+      window.location.replace(basePath + target + '/index.html');
+    }, 1200);
   </script>
 </head>
-<body style="background-color: #0b0b0f; color: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
-  <div style="text-align: center; padding: 2rem;">
-    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">agentflow-oss</h1>
-    <p style="color: #94a3b8; margin-bottom: 2rem;">Redirecting to your preferred language...</p>
-    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-      <a href="./en/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">English</a>
-      <a href="./zh-tw/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">繁體中文</a>
-      <a href="./zh-cn/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">简体中文</a>
-      <a href="./ja/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">日本語</a>
-      <a href="./ko/index.html" style="color: #a78bfa; text-decoration: none; padding: 0.5rem 1rem; border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 6px;">한국어</a>
+<body>
+  <!-- Decorative Glow Orbs -->
+  <div class="glow-orb glow-orb-1"></div>
+  <div class="glow-orb glow-orb-2"></div>
+
+  <div class="container">
+    <div class="card">
+      <h1>AgentFlow OSS</h1>
+      <p class="subtitle">Select your language or wait to be redirected</p>
+
+      <div class="locale-list">
+        <a href="./en/index.html" class="locale-btn">
+          <span class="native-name">English</span>
+          <span class="lang-code">EN</span>
+        </a>
+        <a href="./zh-tw/index.html" class="locale-btn">
+          <span class="native-name">繁體中文</span>
+          <span class="lang-code">ZH-TW</span>
+        </a>
+        <a href="./zh-cn/index.html" class="locale-btn">
+          <span class="native-name">简体中文</span>
+          <span class="lang-code">ZH-CN</span>
+        </a>
+        <a href="./ja/index.html" class="locale-btn">
+          <span class="native-name">日本語</span>
+          <span class="lang-code">JA</span>
+        </a>
+        <a href="./ko/index.html" class="locale-btn">
+          <span class="native-name">한국어</span>
+          <span class="lang-code">KO</span>
+        </a>
+      </div>
+
+      <div class="redirect-status">
+        <span class="status-text">Redirecting to your preferred language...</span>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill"></div>
+        </div>
+      </div>
     </div>
   </div>
 </body>
