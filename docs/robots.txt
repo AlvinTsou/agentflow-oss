@@ -1,0 +1,23 @@
+# Allow AI engines to index for real-time answers (RAG)
+User-agent: Google-Extended
+Allow: /agentflow-oss/
+Allow: /agentflow-oss/docs/
+Allow: /agentflow-oss/index.html
+
+User-agent: GPTBot
+Allow: /agentflow-oss/
+Allow: /agentflow-oss/docs/
+Allow: /agentflow-oss/index.html
+
+User-agent: PerplexityBot
+Allow: /agentflow-oss/
+Allow: /agentflow-oss/docs/
+Allow: /agentflow-oss/index.html
+
+# Block training-data harvesters from bulk downloading non-public resources
+User-agent: CCBot
+Disallow: /
+
+# Default search engine crawlers
+User-agent: *
+Allow: /
